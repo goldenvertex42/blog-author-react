@@ -1,28 +1,14 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { MemoryRouter } from "react-router";
 import { http, HttpResponse } from 'msw';
 import { server } from '../../mocks/server';
 import RegisterForm from './RegisterForm';
 
-// Mock useNavigate from react-router-dom
-const mockNavigate = vi.fn();
-vi.mock('react-router', async () => {
-  const actual = await vi.importActual('react-router');
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
-
 describe('RegisterForm Component', () => {
-  // Helper to render with Router context
-  const renderForm = () => {
-    render(
-      <MemoryRouter>
-        <RegisterForm />
-      </MemoryRouter>
-    );
+  // Helper to render the form with a mock onSuccess prop
+  const renderForm = (onSuccess = vi.fn()) => {
+    render(<RegisterForm onSuccess={onSuccess} />);
+    return { onSuccess };
   };
 
   it('renders all required input fields and the submit button', () => {
@@ -46,27 +32,25 @@ describe('RegisterForm Component', () => {
     expect(emailInput.value).toBe('test@example.com');
   });
 
-  it('submits the form and redirects to login on success', async () => {
-    renderForm();
+  it('calls onSuccess when registration is successful', async () => {
+    const { onSuccess } = renderForm();
 
-    // Fill out minimum required fields
     fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Jane' } });
     fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Doe' } });
     fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'janedoe' } });
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'jane@example.com' } });
     fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'Password123!' } });
     fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'Password123!' } });
+    fireEvent.change(screen.getByLabelText(/admin secret code/i), { target: { value: 'super-secret-blog-code' } });
 
     fireEvent.click(screen.getByRole('button', { name: /register/i }));
 
-    // Wait for the mock API response and navigation to be triggered
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/login');
+      expect(onSuccess).toHaveBeenCalledTimes(1);
     });
   });
 
   it('displays validation errors received from the server', async () => {
-    // Override the default MSW handler to simulate a validation failure (400)
     server.use(
       http.post('http://localhost:3000/auth/register', () => {
         return HttpResponse.json({
@@ -79,10 +63,8 @@ describe('RegisterForm Component', () => {
     );
 
     renderForm();
-    
     fireEvent.click(screen.getByRole('button', { name: /register/i }));
 
-    // Check that error messages from the backend appear in the UI
     expect(await screen.findByText(/invalid email address/i)).toBeInTheDocument();
     expect(await screen.findByText(/username already in use/i)).toBeInTheDocument();
   });

@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
 import Input from "../Input/Input";
 import Button from "../Button/Button";
 
-export default function RegisterForm() {
-  const navigate = useNavigate();
+export default function RegisterForm({ onSuccess }) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -42,30 +40,26 @@ export default function RegisterForm() {
 
       if (!response.ok) {
         if (response.status >= 500) {
-          setServerError("Could not create user."); // Manual set for server crashes
+          setServerError("Could not create user");
         } else if (data.errors) {
-          // Map array [{ path: 'email', msg: '...' }] to object { email: '...' }
           const errorObject = data.errors.reduce((acc, err) => {
             acc[err.path] = err.msg;
             return acc;
           }, {});
           setErrors(errorObject);
         } else {
-          setServerError(data.error || "Could not create user.");
+          setServerError(data.error || "Could not create user");
         }
       } else {
-        // Success! Redirect to login
-        navigate("/login");
+        if (onSuccess) onSuccess(); 
       }
     } catch (err) {
-      setServerError("Could not connect to the server.");
+      setServerError("Could not connect to the server");
     }
   };
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <h2>Create Author Account</h2>
-      
       {serverError && <p className="error-banner">{serverError}</p>}
 
       <Input
