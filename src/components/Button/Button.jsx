@@ -1,12 +1,13 @@
 import styles from "./Button.module.css"
 
-const Button = ({ children, onClick, type = "button" }) => {
+const Button = ({ children, onClick, type = "button", ...props }) => {
   return (
     <button 
       className={styles.button64} 
       role="button" 
       onClick={onClick}
-      type={type} // Crucial for form submission
+      type={type}
+      {...props}
     >
         <span className={styles.text}>{children}</span>
     </button>
