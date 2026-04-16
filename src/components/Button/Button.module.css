@@ -1,0 +1,41 @@
+/* CSS */
+.button64 {
+  align-items: center;
+  background-color: #334155; 
+  border: 1px solid #334155;
+  border-radius: 6px;
+  box-sizing: border-box;
+  color: #FFFFFF;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  justify-content: center;
+  padding: 10px 20px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 200ms ease;
+  user-select: none;
+}
+
+.button64:hover {
+  background-color: #1e293b;
+  border-color: #1e293b;
+  box-shadow: rgba(0, 0, 0, 0.05) 0 4px 6px -1px;
+}
+
+.button64:active {
+  transform: translateY(1px);
+}
+
+.button-secondary {
+  background-color: transparent;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+
+.button-secondary:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
