@@ -14,7 +14,6 @@ describe('Input Component', () => {
   it('renders with the correct label and associates it with the input', () => {
     render(<Input {...defaultProps} />);
     
-    // This checks that clicking the label focuses the input (accessibility)
     const label = screen.getByText(/username/i);
     const input = screen.getByLabelText(/username/i);
     
@@ -39,7 +38,7 @@ describe('Input Component', () => {
     
     const errorDisplay = screen.getByText(errorMessage);
     expect(errorDisplay).toBeInTheDocument();
-    expect(errorDisplay).toHaveClass('error-message');
+    expect(errorDisplay).toHaveClass('error_message');
   });
 
   it('passes extra props like type and placeholder to the input', () => {

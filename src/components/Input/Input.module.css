@@ -1,0 +1,50 @@
+/* Input.css */
+.input_group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+  width: 100%;
+}
+
+.input_group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #374151; /* Dark gray */
+}
+
+.input_group input {
+  width: 100%;
+  padding: 0.625rem;
+  border: 1px solid #d1d5db; /* Light gray border */
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box; /* Ensures padding doesn't affect width */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Focus state for better UX */
+.input_group input:focus {
+  outline: none;
+  border-color: #2563eb; /* Primary blue */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Error styles */
+.input_group .error_message {
+  color: #dc2626; /* Red */
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+/* Highlight the input border when there is an error */
+.input_group input:has(+ .error_message),
+.input_group input.error {
+  border-color: #dc2626;
+}
+
+.input_group input:has(+ .error_message):focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
