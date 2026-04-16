@@ -1,0 +1,61 @@
+.post_item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: white;
+}
+
+.post_content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.post_title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.status_badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  width: fit-content;
+}
+
+.published {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.draft {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.post_actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action_btn {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: white;
+}
+
+.delete_btn {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.delete_btn:hover {
+  background: #fef2f2;
+}
