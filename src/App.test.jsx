@@ -1,41 +1,50 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import App from './App';
+import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { MemoryRouter } from 'react-router';
 import { AuthProvider } from './context/AuthContext';
+import App from './App';
 
-const renderWithAuth = (ui) => render(<AuthProvider>{ui}</AuthProvider>);
+const renderApp = (initialRoute = '/') => {
+  return render(
+    <MemoryRouter initialEntries={[initialRoute]}>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </MemoryRouter>
+  );
+};
 
-describe('App Integration', () => {
-  it('toggles between Register and Login views', async () => {
-    renderWithAuth(<App />);
-    
-    const toggleBtn = await screen.findByText(/login/i);
-    expect(screen.getByText(/create author account/i)).toBeInTheDocument();
-
-    fireEvent.click(toggleBtn);
-    expect(screen.getByText(/welcome back/i)).toBeInTheDocument();
-    expect(screen.getByText(/register/i)).toBeInTheDocument();
+describe('App Routing and Protection', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
   });
 
-  it('shows dashboard when a user is logged in', async () => {
+  it('redirects an unauthenticated user from Dashboard to Login', async () => {
+    renderApp('/');
+
+    const loginHeading = await screen.findByRole('heading', { name: /welcome back/i });
+    expect(loginHeading).toBeInTheDocument();
+  });
+
+  it('allows an authenticated user to access the Dashboard', async () => {
     const mockToken = "header.eyJ1c2VybmFtZSI6InRlc3R1c2VyIn0.signature";
     window.localStorage.setItem('token', mockToken);
 
-    renderWithAuth(<App />);
+    renderApp('/');
 
-    const dashboard = await screen.findByTestId('dashboard');
-    expect(dashboard).toBeInTheDocument();
-    expect(screen.getByText(/testuser/i)).toBeInTheDocument();
+    const dashboardHeading = await screen.findByRole('heading', { 
+      name: /author dashboard/i 
+    });
+    expect(dashboardHeading).toBeInTheDocument();
+
+    const usernameDisplay = await screen.findByText(/testuser/i);
+    expect(usernameDisplay).toBeInTheDocument();
   });
 
-  it('displays the correct heading when toggling views', async () => {
-    renderWithAuth(<App />);
-    
-    expect(screen.getByRole('heading', { name: /create author account/i, level: 1 })).toBeInTheDocument();
+  it('redirects an unauthenticated user from PostEditor to Login', async () => {
+    renderApp('/posts/new');
 
-    const toggleBtn = screen.getByText(/login/i);
-    fireEvent.click(toggleBtn);
-
-    expect(screen.getByRole('heading', { name: /welcome back/i, level: 1 })).toBeInTheDocument();
+    const loginHeading = await screen.findByRole('heading', { name: /welcome back/i });
+    expect(loginHeading).toBeInTheDocument();
   });
 });

@@ -1,53 +1,49 @@
-import { useState } from 'react';
+import { Routes, Route, Navigate } from 'react-router';
 import { useAuth } from './context/AuthContext';
-import Button from './components/Button/Button';
-import RegisterForm from './components/RegisterForm/RegisterForm';
-import LoginForm from './components/LoginForm/LoginForm';
-import PostList from './components/PostList/PostList'
-import './App.css';
 
-const AppContent = () => {
-  const { user, loading, logout } = useAuth();
-  const [isLoginView, setIsLoginView] = useState(false);
+// Pages
+import LoginPage from './pages/Login/LoginPage';
+import RegisterPage from './pages/Register/RegisterPage';
+import Dashboard from './pages/Dashboard/Dashboard';
+import PostEditor from './pages/PostEditor/PostEditor';
 
-  if (loading) {
-    return <div className="loading-screen" data-testid="loading">Checking authentication...</div>;
-  }
-
-  if (!user) {
-    return (
-      <div className="auth-container">
-        <h1>{isLoginView ? 'Welcome Back' : 'Create Author Account'}</h1>
-        
-        {isLoginView ? <LoginForm /> : <RegisterForm onSuccess={() => setIsLoginView(true)} />}
-
-        <Button 
-          className="toggle-btn" 
-          onClick={() => setIsLoginView(!isLoginView)}
-        >
-          {isLoginView ? "Don't have an account? Register" : "Already have an account? Login"}
-        </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="dashboard" data-testid="dashboard">
-      <nav>
-        <span>Welcome, <strong>{user.username}</strong></span>
-        <button className="logout-btn" onClick={logout}>Logout</button>
-      </nav>
-      <main>
-        <h1>Author Dashboard</h1>
-        <p>Manage your blog posts here.</p>
-        <PostList />
-      </main>
-    </div>
-  );
+// 1. The Protected Route Wrapper
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) return <div className="loading-screen">Loading...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  
+  return children;
 };
 
-function App() {
-  return <AppContent />;
-}
+export default function App() {
+  return (
+    <Routes>
+      {/* Public Auth Routes */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
-export default App;
+      {/* Private Author Routes */}
+      <Route 
+        path="/" 
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/posts/new" 
+        element={
+          <ProtectedRoute>
+            <PostEditor />
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* 404 / Redirect */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
