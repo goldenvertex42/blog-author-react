@@ -26,7 +26,6 @@ export default function PostItem({ post, onTogglePublish, onDelete }) {
           {post.published ? 'Unpublish' : 'Publish'}
         </button>
         
-        {/* Placeholder for future editing/comment navigation */}
         <button className={styles.action_btn}>Edit</button>
         <button className={styles.action_btn}>Comments</button>
         
