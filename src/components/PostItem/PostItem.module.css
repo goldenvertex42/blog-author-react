@@ -5,6 +5,7 @@
   padding: 1rem;
   border-bottom: 1px solid #e2e8f0;
   background: white;
+  gap: 1.5rem;
 }
 
 .post_content {
