@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext';
 import Button from './components/Button/Button';
 import RegisterForm from './components/RegisterForm/RegisterForm';
 import LoginForm from './components/LoginForm/LoginForm';
+import PostList from './components/PostList/PostList'
 import './App.css';
 
 const AppContent = () => {
@@ -39,6 +40,7 @@ const AppContent = () => {
       <main>
         <h1>Author Dashboard</h1>
         <p>Manage your blog posts here.</p>
+        <PostList />
       </main>
     </div>
   );
