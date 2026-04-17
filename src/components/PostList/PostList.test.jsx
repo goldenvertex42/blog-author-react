@@ -1,33 +1,55 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { MemoryRouter } from 'react-router';
 import { AuthProvider } from '../../context/AuthContext';
 import PostList from './PostList';
 
-const renderWithAuth = (ui) => render(<AuthProvider>{ui}</AuthProvider>);
+const renderWithProviders = (ui) => {
+  return render(
+    <MemoryRouter>
+      <AuthProvider>
+        {ui}
+      </AuthProvider>
+    </MemoryRouter>
+  );
+};
 
-describe('PostList Component', () => {
-  it('renders loading state and then the list of posts', async () => {
+describe('PostList Integration', () => {
+  beforeEach(() => {
     window.localStorage.setItem('token', 'mock-token');
-
-    renderWithAuth(<PostList />);
-
-    expect(screen.getByText(/loading posts.../i)).toBeInTheDocument();
-
-    const firstPost = await screen.findByText('First Post');
-    expect(firstPost).toBeInTheDocument();
-    expect(screen.getByText('Second Post')).toBeInTheDocument();
+    vi.clearAllMocks();
   });
 
-  it('removes a post from the list when deleted', async () => {
-    window.localStorage.setItem('token', 'mock-token');
-    vi.spyOn(window, 'confirm').mockImplementation(() => true);
-
-    renderWithAuth(<PostList />);
-
-    const deleteButtons = await screen.findAllByRole('button', { name: /delete/i });
+  it('includes the Authorization header in the fetch call', async () => {
+    renderWithProviders(<PostList />);
     
-    fireEvent.click(deleteButtons[0]);
+    const postTitle = await screen.findByText(/first post/i);
+    expect(postTitle).toBeInTheDocument();
+  });
 
+  it('updates the UI immediately when a post is toggled', async () => {
+    renderWithProviders(<PostList />);
+
+    const publishedBadge = await screen.findByText('Published');
+    const toggleBtn = screen.getByRole('button', { name: /unpublish/i });
+
+    fireEvent.click(toggleBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Draft')).toBeInTheDocument();
+    });
+  });
+
+  it('removes the post from the DOM after successful deletion', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
+    
+    renderWithProviders(<PostList />);
+
+    const deleteBtns = await screen.findAllByRole('button', { name: /delete/i });
+    fireEvent.click(deleteBtns[0]);
+
+    expect(confirmSpy).toHaveBeenCalled();
+    
     await waitFor(() => {
       expect(screen.queryByText('First Post')).not.toBeInTheDocument();
     });

@@ -7,11 +7,14 @@
   max-width: 800px;
 }
 
-.loading, .error {
+.loading, 
+.error {
   text-align: center;
   padding: 3rem;
   font-size: 1.1rem;
   color: #64748b;
+  width: 100%;
+  max-width: 800px;
 }
 
 .error {
@@ -21,8 +24,29 @@
   border: 1px solid #fecaca;
 }
 
+.empty_state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: #f8fafc;
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  color: #64748b;
+}
+
+.empty_state p {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
 @media (max-width: 640px) {
   .post_list {
     gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .empty_state {
+    padding: 2rem 1rem;
   }
 }
+

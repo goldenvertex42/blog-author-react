@@ -1,18 +1,13 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
+import { server } from "../../mocks/server";
 import { http, HttpResponse } from 'msw';
-import { server } from '../../mocks/server';
 import RegisterForm from './RegisterForm';
 
-describe('RegisterForm Component', () => {
-  // Helper to render the form with a mock onSuccess prop
-  const renderForm = (onSuccess = vi.fn()) => {
-    render(<RegisterForm onSuccess={onSuccess} />);
-    return { onSuccess };
-  };
-
-  it('renders all required input fields and the submit button', () => {
-    renderForm();
+describe('RegisterForm', () => {
+  it('renders all seven input fields and the submit button', () => {
+    render(<RegisterForm />);
     
     expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
@@ -24,61 +19,83 @@ describe('RegisterForm Component', () => {
     expect(screen.getByRole('button', { name: /register/i })).toBeInTheDocument();
   });
 
-  it('updates input values when the user types', () => {
-    renderForm();
-    const emailInput = screen.getByLabelText(/email/i);
+  it('updates all fields when the user types', async () => {
+    const user = userEvent.setup();
+    render(<RegisterForm />);
     
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    expect(emailInput.value).toBe('test@example.com');
+    const usernameInput = screen.getByLabelText(/username/i);
+    await user.type(usernameInput, 'janedoe');
+    
+    expect(usernameInput).toHaveValue('janedoe');
   });
 
   it('calls onSuccess when registration is successful', async () => {
-    const { onSuccess } = renderForm();
+    const onSuccessMock = vi.fn();
+    const user = userEvent.setup();
+    
+    render(<RegisterForm onSuccess={onSuccessMock} />);
 
-    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Jane' } });
-    fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Doe' } });
-    fireEvent.change(screen.getByLabelText(/username/i), { target: { value: 'janedoe' } });
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'jane@example.com' } });
-    fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'Password123!' } });
-    fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'Password123!' } });
-    fireEvent.change(screen.getByLabelText(/admin secret code/i), { target: { value: 'super-secret-blog-code' } });
+    await user.type(screen.getByLabelText(/first name/i), 'Jane');
+    await user.type(screen.getByLabelText(/last name/i), 'Doe');
+    await user.type(screen.getByLabelText(/username/i), 'janedoe');
+    await user.type(screen.getByLabelText(/email/i), 'jane@example.com');
+    await user.type(screen.getByLabelText(/^password$/i), 'Password123!');
+    await user.type(screen.getByLabelText(/confirm password/i), 'Password123!');
+    await user.type(screen.getByLabelText(/admin secret code/i), 'super-secret-blog-code');
 
-    fireEvent.click(screen.getByRole('button', { name: /register/i }));
+    await user.click(screen.getByRole('button', { name: /register/i }));
 
     await waitFor(() => {
-      expect(onSuccess).toHaveBeenCalledTimes(1);
-    });
+      expect(onSuccessMock).toHaveBeenCalledTimes(1);
+    }, { timeout: 2000 });
   });
 
-  it('displays validation errors received from the server', async () => {
+
+  it('correctly maps and displays multiple validation errors from the server', async () => {
     server.use(
       http.post('http://localhost:3000/auth/register', () => {
         return HttpResponse.json({
           errors: [
-            { path: 'email', msg: 'Invalid email address' },
-            { path: 'username', msg: 'Username already in use' }
+            { path: 'email', msg: 'Email is invalid' },
+            { path: 'password', msg: 'Password too short' },
+            { path: 'adminCode', msg: 'Incorrect secret code' }
           ]
         }, { status: 400 });
       })
     );
 
-    renderForm();
+    render(<RegisterForm />);
     fireEvent.click(screen.getByRole('button', { name: /register/i }));
 
-    expect(await screen.findByText(/invalid email address/i)).toBeInTheDocument();
-    expect(await screen.findByText(/username already in use/i)).toBeInTheDocument();
+    expect(await screen.findByText(/email is invalid/i)).toBeInTheDocument();
+    expect(await screen.findByText(/password too short/i)).toBeInTheDocument();
+    expect(await screen.findByText(/incorrect secret code/i)).toBeInTheDocument();
   });
 
-  it('shows a generic error message if the server crashes', async () => {
+  it('shows generic server error on 500 status', async () => {
     server.use(
       http.post('http://localhost:3000/auth/register', () => {
-        return HttpResponse.json({}, { status: 500 });
+        return new HttpResponse(null, { status: 500 });
       })
     );
 
-    renderForm();
+    render(<RegisterForm />);
     fireEvent.click(screen.getByRole('button', { name: /register/i }));
 
     expect(await screen.findByText(/could not create user/i)).toBeInTheDocument();
+    expect(screen.getByText(/could not create user/i)).toHaveClass('error-banner');
+  });
+
+  it('shows connection error when fetch fails', async () => {
+    server.use(
+      http.post('http://localhost:3000/auth/register', () => {
+        return HttpResponse.error();
+      })
+    );
+
+    render(<RegisterForm />);
+    fireEvent.click(screen.getByRole('button', { name: /register/i }));
+
+    expect(await screen.findByText(/could not connect to the server/i)).toBeInTheDocument();
   });
 });

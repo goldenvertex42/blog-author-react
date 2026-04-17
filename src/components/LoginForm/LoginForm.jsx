@@ -5,20 +5,13 @@ import Button from "../Button/Button";
 
 export default function LoginForm() {
   const { login } = useAuth();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -36,29 +29,26 @@ export default function LoginForm() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        if (response.status >= 500) {
-          setServerError("Could not log in - Server error");
-        } else if (data.errors) {
+        if (data.errors) {
           const errorObject = data.errors.reduce((acc, err) => {
             acc[err.path] = err.msg;
             return acc;
           }, {});
           setErrors(errorObject);
         } else {
-          setServerError(data.error || "Invalid email or password");
+          setServerError(data.error || "Invalid email or password.");
         }
       } else {
-        login(data.token);
+        login(data.token); // Updates global state
       }
     } catch (err) {
-      setServerError("Could not connect to the server");
+      setServerError("Could not connect to the server.");
     }
   };
 
   return (
     <form onSubmit={handleSubmit} noValidate>
       {serverError && <p className="error-banner">{serverError}</p>}
-
       <Input
         id="email"
         name="email"
@@ -69,7 +59,6 @@ export default function LoginForm() {
         error={errors.email}
         required
       />
-
       <Input
         id="password"
         name="password"
@@ -80,7 +69,6 @@ export default function LoginForm() {
         error={errors.password}
         required
       />
-
       <Button type="submit">Login</Button>
     </form>
   );

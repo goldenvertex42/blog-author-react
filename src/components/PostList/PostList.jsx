@@ -33,6 +33,7 @@ export default function PostList() {
   const handleTogglePublish = async (id) => {
     try {
       const postToUpdate = posts.find(p => p.id === id);
+      if (!postToUpdate) return;
       const response = await fetch(`http://localhost:3000/posts/${id}`, {
         method: 'PUT',
         headers: {
@@ -70,7 +71,9 @@ export default function PostList() {
   return (
     <div className={styles.post_list}>
       {posts.length === 0 ? (
-        <p>No posts found. Create your first one!</p>
+        <div className={styles.empty_state}>
+          <p>No posts found. Create your first one!</p>
+        </div>
       ) : (
         posts.map(post => (
           <PostItem 
