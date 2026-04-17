@@ -31,6 +31,10 @@ export const handlers = [
     return HttpResponse.json(mockPosts);
   }),
 
+  http.post('http://localhost:3000/posts', async ({ request }) => {
+    return HttpResponse.json({ message: "Post created" }, { status: 201 });
+  }),
+
   http.put('http://localhost:3000/posts/:id', async ({ request, params }) => {
     const { id } = params;
     const body = await request.json();
