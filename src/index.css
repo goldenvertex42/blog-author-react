@@ -11,6 +11,17 @@
   --bg: #f8fafc;
   --text-main: #1e293b;
   --text-muted: #64748b;
+  
+  --btn-bg: #2563eb;
+  --btn-color: #ffffff;
+  --btn-border: #2563eb;
+  --btn-hover-bg: #1d4ed8;
+  
+  --btn-secondary-bg: #f1f5f9;
+  --btn-secondary-color: #ef4444;
+  --btn-secondary-border: #fee2e2;
+  --btn-secondary-hover-bg: #fecaca;
+  --btn-secondary-hover-color: #dc2626;
 }
 
 body {
@@ -25,3 +36,4 @@ a {
   text-decoration: none;
   color: inherit;
 }
+
