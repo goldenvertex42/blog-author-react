@@ -10,7 +10,7 @@ export default function PostForm({ onSave, initialData = {} }) {
   const { token } = useAuth();
   const [formData, setFormData] = useState({
     title: initialData.title || '',
-    content: initialData.content || '',
+    text: initialData.text || '',
     published: initialData.published || false,
   });
   const [error, setError] = useState(null);
@@ -55,11 +55,11 @@ export default function PostForm({ onSave, initialData = {} }) {
       />
       
       <div className={styles.textarea_group}>
-        <label htmlFor="content">Content</label>
+        <label htmlFor="content">Text</label>
         <textarea
-          id="content"
-          value={formData.content}
-          onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+          id="text"
+          value={formData.text}
+          onChange={(e) => setFormData({ ...formData, text: e.target.value })}
           required
         />
       </div>
@@ -75,8 +75,10 @@ export default function PostForm({ onSave, initialData = {} }) {
       </div>
 
       {error && <p className="error-banner">{error}</p>}
-      <Button type="submit">{initialData.id ? 'Update Post' : 'Create Post'}</Button>
-      <Button type="button" onClick={() => navigate('/')} className={styles.cancel_btn}>Cancel</Button>
+      <div className={styles.form_actions}>
+        <Button type="submit">{initialData.id ? 'Update Post' : 'Create Post'}</Button>
+        <Button type="button" variant="secondary" onClick={() => navigate('/')}>Cancel</Button>
+      </div>
     </form>
   );
 }

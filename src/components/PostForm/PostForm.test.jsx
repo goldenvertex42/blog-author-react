@@ -5,6 +5,7 @@ import { AuthProvider } from '../../context/AuthContext';
 import PostForm from './PostForm';
 
 const mockNavigate = vi.fn();
+
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
   return {
@@ -13,12 +14,21 @@ vi.mock('react-router', async () => {
   };
 });
 
-const renderWithAuth = (ui) => render(<AuthProvider>{ui}</AuthProvider>);
+const renderWithAuth = (ui, mockUser = { id: 1, username: 'testuser' }) => {
+  const mockToken = "header." + btoa(JSON.stringify(mockUser)) + ".signature";
+  window.localStorage.setItem('token', mockToken);
+  
+  return render(
+    <AuthProvider>
+      {ui}
+    </AuthProvider>
+  );
+};
 
 describe('PostForm Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    window.localStorage.setItem('token', 'mock-token');
+    window.localStorage.clear();
   });
 
   it('submits correctly and navigates to the dashboard on success', async () => {
@@ -29,33 +39,32 @@ describe('PostForm Component', () => {
 
     await user.type(screen.getByLabelText(/title/i), 'New Post');
     await user.type(screen.getByLabelText(/content/i), 'Some content');
-
     await user.click(screen.getByRole('button', { name: /create post/i }));
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/');
     });
-    
     expect(onSave).toHaveBeenCalled();
   });
 
   it('stays on the page and shows an error if submission fails', async () => {
+    const user = userEvent.setup();
     renderWithAuth(<PostForm />);
 
-    fireEvent.click(screen.getByRole('button', { name: /create post/i }));
+    await user.click(screen.getByRole('button', { name: /create post/i }));
 
     await waitFor(() => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
-  it('navigates back to dashboard when Cancel is clicked', () => {
+  it('navigates back to dashboard when Cancel is clicked', async () => {
+    const user = userEvent.setup();
     renderWithAuth(<PostForm />);
     
     const cancelBtn = screen.getByRole('button', { name: /cancel/i });
-    fireEvent.click(cancelBtn);
+    await user.click(cancelBtn);
 
     expect(mockNavigate).toHaveBeenCalledWith('/');
   });
 });
-

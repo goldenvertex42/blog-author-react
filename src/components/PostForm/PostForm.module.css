@@ -1,0 +1,53 @@
+.post_form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.textarea_group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.textarea_group label {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.textarea_group textarea {
+  min-height: 300px;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.checkbox_group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form_actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.cancel_btn {
+  background-color: transparent;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+.cancel_btn:hover {
+  background-color: #f8fafc;
+  color: #1e293b;
+  border-color: #94a3b8;
+}
