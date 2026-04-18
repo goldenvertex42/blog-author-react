@@ -8,5 +8,10 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './tests/setup.js',
+    css: {
+      modules: {
+        classNameStrategy: 'non-scoped', // Tells Vitest to return 'error_message' instead of 'error_message_abc123'
+      },
+    },
   },
 })
