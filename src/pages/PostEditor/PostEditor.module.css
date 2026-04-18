@@ -1,0 +1,32 @@
+.editor_page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.editor_header {
+  margin-bottom: 2rem;
+}
+
+.back_link {
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.875rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.back_link:hover {
+  color: #2563eb;
+}
+
+.editor_header h1 {
+  font-size: 2rem;
+  color: #1e293b;
+}
+
+.editor_container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
