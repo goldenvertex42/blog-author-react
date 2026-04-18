@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
+import { MemoryRouter } from 'react-router';
 import PostItem from './PostItem';
 
 describe('PostItem', () => {
@@ -16,11 +17,13 @@ describe('PostItem', () => {
     const user = userEvent.setup();
     
     render(
-      <PostItem 
-        post={post} 
-        onTogglePublish={onTogglePublish} 
-        onDelete={onDelete} 
-      />
+      <MemoryRouter>
+        <PostItem 
+          post={post} 
+          onTogglePublish={onTogglePublish} 
+          onDelete={onDelete} 
+        />
+      </MemoryRouter>
     );
 
     return { onTogglePublish, onDelete, user };
@@ -31,7 +34,7 @@ describe('PostItem', () => {
     expect(screen.getByText('Testing React Components')).toBeInTheDocument();
     expect(screen.getByText('Draft')).toBeInTheDocument();
   });
-
+  
   it('applies "published" class and text when post is published', () => {
     setup({ ...mockPost, published: true });
     
@@ -61,12 +64,16 @@ describe('PostItem', () => {
 
   it('changes button text based on published status', () => {
     const { rerender } = render(
-      <PostItem post={mockPost} onTogglePublish={() => {}} onDelete={() => {}} />
+      <MemoryRouter>
+        <PostItem post={mockPost} onTogglePublish={() => {}} onDelete={() => {}} />
+      </MemoryRouter>
     );
     expect(screen.getByRole('button', { name: /publish/i })).toBeInTheDocument();
 
     rerender(
-      <PostItem post={{ ...mockPost, published: true }} onTogglePublish={() => {}} onDelete={() => {}} />
+      <MemoryRouter>
+        <PostItem post={{ ...mockPost, published: true }} onTogglePublish={() => {}} onDelete={() => {}} />
+      </MemoryRouter>
     );
     expect(screen.getByRole('button', { name: /unpublish/i })).toBeInTheDocument();
   });

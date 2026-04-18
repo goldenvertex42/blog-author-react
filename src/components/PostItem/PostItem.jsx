@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import styles from './PostItem.module.css';
 
 /**
@@ -26,7 +27,9 @@ export default function PostItem({ post, onTogglePublish, onDelete }) {
           {post.published ? 'Unpublish' : 'Publish'}
         </button>
         
-        <button className={styles.action_btn}>Edit</button>
+        <Link to={`/posts/edit/${post.id}`} className={styles.action_btn}>
+          Edit
+        </Link>
         <button className={styles.action_btn}>Comments</button>
         
         <button 

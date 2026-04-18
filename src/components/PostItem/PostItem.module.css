@@ -50,6 +50,11 @@
   border: 1px solid #cbd5e1;
   border-radius: 4px;
   background: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #1e293b;
 }
 
 .delete_btn {
