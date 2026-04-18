@@ -41,6 +41,14 @@ export default function App() {
           </ProtectedRoute>
         } 
       />
+      <Route 
+        path="/posts/edit/:postId" 
+        element={
+          <ProtectedRoute>
+            <PostEditor />
+          </ProtectedRoute>
+        } 
+      />
 
       {/* 404 / Redirect */}
       <Route path="*" element={<Navigate to="/" replace />} />
