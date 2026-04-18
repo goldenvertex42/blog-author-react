@@ -5,6 +5,12 @@ let mockPosts = [
   { id: 2, title: "Second Post", published: false },
 ];
 
+let mockComments = [
+  { id: 1, postId: 1, content: "Great post!", authorName: "Jane Doe", authorId: 2, createdAt: new Date().toISOString() },
+  { id: 2, postId: 1, content: "Very helpful, thanks!", authorName: "John Smith", authorId: 3, createdAt: new Date().toISOString() },
+  { id: 3, postId: 2, content: "First comment here!", authorName: "Alice", authorId: 4, createdAt: new Date().toISOString() },
+];
+
 export const handlers = [
   http.post('http://localhost:3000/auth/register', async ({ request }) => {
     const newUser = await request.json();
@@ -49,6 +55,35 @@ export const handlers = [
   http.delete('http://localhost:3000/posts/:id', ({ params }) => {
     const { id } = params;
     mockPosts = mockPosts.filter(p => p.id !== Number(id));
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get('http://localhost:3000/posts/:postId/comments', ({ params }) => {
+    const { postId } = params;
+    const filteredComments = mockComments.filter(c => c.postId === Number(postId));
+    return HttpResponse.json(filteredComments);
+  }),
+
+  http.post('http://localhost:3000/posts/:postId/comments', async ({ request, params }) => {
+    const { postId } = params;
+    const body = await request.json();
+    
+    const newComment = {
+      id: mockComments.length + 1,
+      postId: Number(postId),
+      content: body.content,
+      authorName: "testuser",
+      authorId: 1,          
+      createdAt: new Date().toISOString(),
+    };
+    
+    mockComments.push(newComment);
+    return HttpResponse.json(newComment, { status: 201 });
+  }),
+
+  http.delete('http://localhost:3000/comments/:id', ({ params }) => {
+    const { id } = params;
+    mockComments = mockComments.filter(c => c.id !== Number(id));
     return new HttpResponse(null, { status: 204 });
   }),
 ];
