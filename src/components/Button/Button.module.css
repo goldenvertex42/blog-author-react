@@ -1,40 +1,28 @@
-.button64 {
-  align-items: center;
-  background-color: #334155; 
-  border: 1px solid #334155;
+.btn {
+  background-color: var(--btn-bg);
+  color: var(--btn-color);
+  border: 1px solid var(--btn-border);
+  
+  padding: 0.5rem 1rem;
   border-radius: 6px;
-  box-sizing: border-box;
-  color: #FFFFFF;
-  display: inline-flex;
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 500;
-  justify-content: center;
-  padding: 10px 20px;
-  text-decoration: none;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 200ms ease;
-  user-select: none;
+  transition: all 0.2s ease;
 }
 
-.button64:hover {
-  background-color: #1e293b;
-  border-color: #1e293b;
-  box-shadow: rgba(0, 0, 0, 0.05) 0 4px 6px -1px;
+.btn:hover {
+  background-color: var(--btn-hover-bg);
+  border-color: var(--btn-border);
 }
 
-.button64:active {
-  transform: translateY(1px);
+.btn[data-variant="secondary"] {
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-color);
+  border: 1px solid var(--btn-secondary-border);
 }
 
-.button-secondary {
-  background-color: transparent;
-  color: #334155;
-  border: 1px solid #e2e8f0;
+.btn[data-variant="secondary"]:hover {
+  background-color: var(--btn-secondary-hover-bg);
+  color: var(--btn-secondary-hover-color);
+  border-color: var(--btn-secondary-hover-bg);
 }
-
-.button-secondary:hover {
-  background-color: #f8fafc;
-  border-color: #cbd5e1;
-}
-

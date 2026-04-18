@@ -1,17 +1,13 @@
 import styles from "./Button.module.css"
 
-const Button = ({ children, onClick, type = "button", ...props }) => {
+export default function Button({ children, variant, className = '', ...props }) {
   return (
     <button 
-      className={styles.button64} 
-      role="button" 
-      onClick={onClick}
-      type={type}
+      className={`${styles.btn} ${className}`} 
+      data-variant={variant} // This acts as our "switch"
       {...props}
     >
-        <span className={styles.text}>{children}</span>
+      {children}
     </button>
   );
-};
-
-export default Button;
+}
