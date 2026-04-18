@@ -2,6 +2,7 @@ import { useAuth } from '../../context/AuthContext';
 import PostList from '../../components/PostList/PostList';
 import { Link } from 'react-router';
 import styles from './Dashboard.module.css';
+import Button from '../../components/Button/Button';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -11,7 +12,7 @@ export default function Dashboard() {
       <header className={styles.header}>
         <div className={styles.top_bar}>
           <h1>Author Dashboard</h1>
-          <button onClick={logout} className={styles.logout_btn}>Logout</button>
+          <Button onClick={logout} variant="secondary">Logout</Button>
         </div>
         
         <div className={styles.welcome_section}>
