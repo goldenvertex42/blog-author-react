@@ -1,0 +1,43 @@
+.page_container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 1rem;
+}
+
+.back_link {
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.875rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.back_link:hover {
+  color: #2563eb;
+}
+
+.header h1 {
+  font-size: 2rem;
+  color: #1e293b;
+  margin: 0;
+}
+
+.new_comment_section {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 2.5rem;
+}
+
+.new_comment_section h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #475569;
+}
