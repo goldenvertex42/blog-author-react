@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
 import Input from '../Input/Input';
@@ -15,15 +15,24 @@ export default function PostForm({ onSave, initialData = {} }) {
   });
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      setFormData({
+        title: initialData.title || '',
+        text: initialData.text || '',
+        published: initialData.published || false,
+      });
+    }
+  }, [initialData]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const postId = initialData.id || initialData._id;
+    const url = postId ? `http://localhost:3000/posts/${postId}` : 'http://localhost:3000/posts';
+    const method = postId ? 'PUT' : 'POST';
     try {
-      const url = initialData.id 
-        ? `http://localhost:3000/posts/${initialData.id}` 
-        : 'http://localhost:3000/posts';
-      
       const response = await fetch(url, {
-        method: initialData.id ? 'PUT' : 'POST',
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -55,7 +64,7 @@ export default function PostForm({ onSave, initialData = {} }) {
       />
       
       <div className={styles.textarea_group}>
-        <label htmlFor="content">Text</label>
+        <label htmlFor="text">Text</label>
         <textarea
           id="text"
           value={formData.text}

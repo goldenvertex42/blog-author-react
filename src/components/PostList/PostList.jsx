@@ -11,7 +11,7 @@ export default function PostList() {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch('http://localhost:3000/posts', {
+      const response = await fetch('http://localhost:3000/posts/admin', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -34,22 +34,27 @@ export default function PostList() {
     try {
       const postToUpdate = posts.find(p => p.id === id);
       if (!postToUpdate) return;
+
       const response = await fetch(`http://localhost:3000/posts/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}` 
         },
-        body: JSON.stringify({ published: !postToUpdate.published })
+        body: JSON.stringify({ 
+          ...postToUpdate, 
+          published: !postToUpdate.published 
+        })
       });
+
       if (!response.ok) throw new Error('Update failed');
       
-      // Update local state immediately for a fast UI feel
       setPosts(posts.map(p => p.id === id ? { ...p, published: !p.published } : p));
     } catch (err) {
       alert(err.message);
     }
   };
+
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this post?")) return;

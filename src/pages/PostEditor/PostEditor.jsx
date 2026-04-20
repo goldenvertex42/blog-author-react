@@ -34,7 +34,11 @@ export default function PostEditor() {
       </header>
       
       <main className={styles.editor_container}>
-        <PostForm initialData={initialData || {}} />
+        <PostForm 
+          key={initialData?.id || 'new'} 
+          initialData={initialData || { title: '', content: '', published: false }} 
+        />
+        
       </main>
     </div>
   );
