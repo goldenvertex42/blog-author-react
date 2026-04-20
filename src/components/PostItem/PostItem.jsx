@@ -30,7 +30,7 @@ export default function PostItem({ post, onTogglePublish, onDelete }) {
         <Link to={`/posts/edit/${post.id}`} className={styles.action_btn}>
           Edit
         </Link>
-        <Link to={`/posts/${post.id}/comments`} className={styles.action_btn}>Comments</Link>
+        <Link to={`/posts/${post.id}/comments`} className={styles.action_btn}>Comments ({post._count?.comments || 0})</Link>
         
         <button 
           className={`${styles.action_btn} ${styles.delete_btn}`} 
