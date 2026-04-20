@@ -5,7 +5,7 @@ import styles from './CommentForm.module.css';
 
 export default function CommentForm({ postId, initialData = null, onSuccess, onCancel }) {
   const { token } = useAuth();
-  const [content, setContent] = useState(initialData?.content || '');
+  const [text, setText] = useState(initialData?.text || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -14,7 +14,7 @@ export default function CommentForm({ postId, initialData = null, onSuccess, onC
 
     try {
       const url = initialData 
-        ? `http://localhost:3000/comments/${initialData.id}` 
+        ? `http://localhost:3000/posts/comments/${initialData.id}` 
         : `http://localhost:3000/posts/${postId}/comments`;
       
       const response = await fetch(url, {
@@ -23,12 +23,12 @@ export default function CommentForm({ postId, initialData = null, onSuccess, onC
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ text }),
       });
 
       if (response.ok) {
         onSuccess();
-        if (!initialData) setContent('');
+        if (!initialData) setText('');
       }
     } catch (err) {
       console.error(err);
@@ -42,8 +42,8 @@ export default function CommentForm({ postId, initialData = null, onSuccess, onC
       <textarea
         className={styles.textarea}
         placeholder="Write a comment..."
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
         required
       />
       <div className={styles.actions}>

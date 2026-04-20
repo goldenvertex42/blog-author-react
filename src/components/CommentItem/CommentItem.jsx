@@ -8,7 +8,8 @@ export default function CommentItem({ comment, onDelete, onRefresh }) {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   
-  const isOwnComment = user?.id === comment.authorId;
+  const isOwnComment = String(user?.id) === String(comment.userId);
+  console.log("User ID:", user?.id, "Comment Author ID:", comment.userId)
 
   if (isEditing) {
     return (
@@ -28,13 +29,13 @@ export default function CommentItem({ comment, onDelete, onRefresh }) {
   return (
     <div className={styles.comment_item}>
       <div className={styles.comment_meta}>
-        <strong>{comment.authorName}</strong>
+        <strong>{comment.user.username}</strong>
         <span className={styles.date}>
           {new Date(comment.createdAt).toLocaleDateString()}
         </span>
       </div>
       
-      <p className={styles.content}>{comment.content}</p>
+      <p className={styles.content}>{comment.text}</p>
       
       <div className={styles.actions}>
         {isOwnComment && (
