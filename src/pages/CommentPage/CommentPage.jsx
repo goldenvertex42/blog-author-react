@@ -11,7 +11,7 @@ export default function CommentPage() {
   return (
     <div className={styles.page_container}>
       <header className={styles.header}>
-        <Link to="/" className={styles.back_link}>← Back to Dashboard</Link>
+        <Link to="/" className={styles.back_link}>← Back to Overview</Link>
         <h1>Comment Moderation</h1>
       </header>
 

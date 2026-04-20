@@ -11,15 +11,11 @@ export default function Dashboard() {
     <div className={styles.dashboard_container}>
       <header className={styles.header}>
         <div className={styles.top_bar}>
-          <h1>Author Dashboard</h1>
-          <Button onClick={logout} variant="secondary">Logout</Button>
+          <h1>Post Overview</h1>
         </div>
         
         <div className={styles.welcome_section}>
           <h2>Welcome back, <span className={styles.username}>{user?.username}</span></h2>
-          <Link to="/posts/new" className={styles.new_post_link}>
-            + Create New Post
-          </Link>
         </div>
       </header>
 
