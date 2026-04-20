@@ -27,11 +27,14 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       const decoded = decodeToken(storedToken);
-      if (decoded) {
+      
+      const currentTime = Date.now() / 1000;
+
+      if (decoded && decoded.exp > currentTime) {
         setToken(storedToken);
         setUser(decoded);
       } else {
-        localStorage.removeItem('token');
+        logout(); 
       }
     }
     setLoading(false);
