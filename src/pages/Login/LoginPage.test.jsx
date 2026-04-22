@@ -6,7 +6,12 @@ import LoginPage from './LoginPage';
 
 const renderLoginPage = (mockUser = null) => {
   if (mockUser) {
-    const mockToken = "header." + btoa(JSON.stringify(mockUser)) + ".signature";
+    const payload = { 
+      ...mockUser, 
+      exp: Math.floor(Date.now() / 1000) + 3600 
+    };
+    
+    const mockToken = "header." + btoa(JSON.stringify(payload)) + ".signature";
     window.localStorage.setItem('token', mockToken);
   } else {
     window.localStorage.clear();

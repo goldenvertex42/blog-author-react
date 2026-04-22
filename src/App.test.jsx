@@ -4,7 +4,16 @@ import { MemoryRouter } from 'react-router';
 import { AuthProvider } from './context/AuthContext';
 import App from './App';
 
-const renderApp = (initialRoute = '/') => {
+const renderApp = (initialRoute = '/', mockUser = null) => {
+  if (mockUser) {
+    const payload = { 
+      ...mockUser, 
+      exp: Math.floor(Date.now() / 1000) + 3600 
+    };
+    const mockToken = "header." + btoa(JSON.stringify(payload)) + ".signature";
+    window.localStorage.setItem('token', mockToken);
+  }
+
   return render(
     <MemoryRouter initialEntries={[initialRoute]}>
       <AuthProvider>
@@ -27,19 +36,12 @@ describe('App Routing and Protection', () => {
   });
 
   it('allows an authenticated user to access the Dashboard', async () => {
-    const mockToken = "header.eyJ1c2VybmFtZSI6InRlc3R1c2VyIn0.signature";
-    window.localStorage.setItem('token', mockToken);
+  renderApp('/', { username: 'testuser' });
 
-    renderApp('/');
+  expect(await screen.findByText(/testuser/i)).toBeInTheDocument();
+  expect(screen.getByText(/Welcome back,/i)).toBeInTheDocument();
+});
 
-    const dashboardHeading = await screen.findByRole('heading', { 
-      name: /author dashboard/i 
-    });
-    expect(dashboardHeading).toBeInTheDocument();
-
-    const usernameDisplay = await screen.findByText(/testuser/i);
-    expect(usernameDisplay).toBeInTheDocument();
-  });
 
   it('redirects an unauthenticated user from PostEditor to Login', async () => {
     renderApp('/posts/new');

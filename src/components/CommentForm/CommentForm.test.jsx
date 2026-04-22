@@ -35,7 +35,7 @@ describe('CommentForm Component', () => {
   });
 
   it('pre-fills data and shows "Update" button when in Edit mode', () => {
-    const initialData = { id: 'c1', content: 'Original comment text' };
+    const initialData = { id: 'c1', text: 'Original comment text' };
     renderWithAuth(<CommentForm initialData={initialData} />);
     
     const textarea = screen.getByPlaceholderText(/write a comment/i);

@@ -25,7 +25,7 @@ describe('CommentPage Integration', () => {
     renderCommentPage();
     
     expect(screen.getByRole('heading', { name: /comment moderation/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /back to dashboard/i })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: /back to overview/i })).toHaveAttribute('href', '/');
     expect(screen.getByPlaceholderText(/write a comment/i)).toBeInTheDocument();
   });
 

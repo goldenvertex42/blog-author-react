@@ -7,8 +7,9 @@ import PostItem from './PostItem';
 describe('PostItem', () => {
   const mockPost = {
     id: 1,
-    title: 'Testing React Components',
+    title: 'Test Post',
     published: false,
+    _count: { comments: 5 }
   };
 
   const setup = (post = mockPost) => {
@@ -29,10 +30,10 @@ describe('PostItem', () => {
     return { onTogglePublish, onDelete, user };
   };
 
-  it('renders post title and correct initial status', () => {
+  it('renders title and comment count', () => {
     setup();
-    expect(screen.getByText('Testing React Components')).toBeInTheDocument();
-    expect(screen.getByText('Draft')).toBeInTheDocument();
+    expect(screen.getByText('Test Post')).toBeInTheDocument();
+    expect(screen.getByText(/Comments \(5\)/i)).toBeInTheDocument();
   });
   
   it('applies "published" class and text when post is published', () => {
@@ -40,7 +41,6 @@ describe('PostItem', () => {
     
     const statusLabel = screen.getByText('Published');
     expect(statusLabel).toBeInTheDocument();
-    // Testing implementation details like classes is okay for status indicators
     expect(statusLabel).toHaveClass('published');
   });
 

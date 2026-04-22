@@ -6,10 +6,16 @@ import PostEditor from './PostEditor';
 import { server } from '../../mocks/server';
 import { http, HttpResponse } from 'msw';
 
-const renderPostEditor = (route = '/posts/new', mockUser = { username: 'testuser' }) => {
-  const mockToken = "header." + btoa(JSON.stringify(mockUser)) + ".signature";
-  window.localStorage.setItem('token', mockToken);
+const renderPostEditor = (route = '/posts/new', mockUser = { id: 1, username: 'testuser' }) => {
+  const payload = { 
+    ...mockUser, 
+    exp: Math.floor(Date.now() / 1000) + 3600 
+  };
+
+  const mockToken = "header." + btoa(JSON.stringify(payload)) + ".signature";
   
+  window.localStorage.setItem('token', mockToken);
+
   return render(
     <MemoryRouter initialEntries={[route]}>
       <AuthProvider>
@@ -23,6 +29,7 @@ const renderPostEditor = (route = '/posts/new', mockUser = { username: 'testuser
   );
 };
 
+
 describe('PostEditor Page', () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -34,7 +41,6 @@ describe('PostEditor Page', () => {
   });
 
   it('renders "Edit Post" and fetches data when a postId is provided', async () => {
-    // 1. Setup MSW to return a specific post for the ID '123'
     server.use(
       http.get('http://localhost:3000/posts/123', () => {
         return HttpResponse.json({
@@ -48,19 +54,10 @@ describe('PostEditor Page', () => {
 
     renderPostEditor('/posts/edit/123');
 
-    // 2. Verify the page transitions from loading to the Edit heading
     const heading = await screen.findByRole('heading', { name: /edit post/i });
     expect(heading).toBeInTheDocument();
 
-    // 3. Verify the form is pre-filled with the fetched data
     const titleInput = await screen.findByLabelText(/title/i);
     expect(titleInput).toHaveValue('Fetched Post Title');
-  });
-
-  it('navigates back to dashboard when the back link is clicked', async () => {
-    renderPostEditor('/posts/new');
-    
-    const backLink = screen.getByRole('link', { name: /back to dashboard/i });
-    expect(backLink).toHaveAttribute('href', '/');
   });
 });

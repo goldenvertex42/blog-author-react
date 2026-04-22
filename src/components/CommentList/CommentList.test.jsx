@@ -7,7 +7,11 @@ import { server } from '../../mocks/server';
 import { http, HttpResponse } from 'msw';
 
 const renderCommentList = (postId = '1', mockUser = { id: 1, username: 'testuser' }) => {
-  const mockToken = "header." + btoa(JSON.stringify(mockUser)) + ".signature";
+  const payload = {
+    ...mockUser,
+    exp: Math.floor(Date.now() / 1000) + 3600 
+  };
+  const mockToken = "header." + btoa(JSON.stringify(payload)) + ".signature";
   window.localStorage.setItem('token', mockToken);
 
   return render(
@@ -31,8 +35,18 @@ describe('CommentList Integration', () => {
     server.use(
       http.get('*/posts/1/comments', () => {
         return HttpResponse.json([
-          { id: 'c1', content: 'Great post!', authorName: 'User A', createdAt: new Date().toISOString() },
-          { id: 'c2', content: 'Very helpful.', authorName: 'User B', createdAt: new Date().toISOString() }
+          { 
+            id: 'c1', 
+            text: 'Great post!',
+            createdAt: new Date().toISOString(),
+            user: { username: 'User A' }
+          },
+          { 
+            id: 'c2', 
+            text: 'Very helpful.', 
+            createdAt: new Date().toISOString(),
+            user: { username: 'User B' }
+          }
         ]);
       })
     );
@@ -40,9 +54,14 @@ describe('CommentList Integration', () => {
     renderCommentList('1');
 
     expect(screen.getByText(/loading comments.../i)).toBeInTheDocument();
-    
+
     const comments = await screen.findAllByText(/great post!|very helpful\./i);
     expect(comments).toHaveLength(2);
+
+    expect(screen.getByText('User A')).toBeInTheDocument();
+    expect(screen.getByText('User B')).toBeInTheDocument();
+
     expect(screen.getByText(/manage comments \(2\)/i)).toBeInTheDocument();
   });
+
 });

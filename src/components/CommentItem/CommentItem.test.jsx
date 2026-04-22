@@ -5,9 +5,15 @@ import { AuthProvider } from '../../context/AuthContext';
 import CommentItem from './CommentItem';
 
 const renderWithUser = (ui, mockUser) => {
-  const mockToken = "header." + btoa(JSON.stringify(mockUser)) + ".signature";
-  window.localStorage.setItem('token', mockToken);
+  const payload = {
+    ...mockUser,
+    exp: Math.floor(Date.now() / 1000) + 3600 
+  };
+
+  const mockToken = "header." + btoa(JSON.stringify(payload)) + ".signature";
   
+  window.localStorage.setItem('token', mockToken);
+
   return render(
     <AuthProvider>
       {ui}
@@ -15,12 +21,13 @@ const renderWithUser = (ui, mockUser) => {
   );
 };
 
+
 describe('CommentItem', () => {
   const mockComment = {
     id: 'c1',
-    content: 'This is a test comment',
-    authorId: 'user-123',
-    authorName: 'Test Author',
+    text: 'This is a test comment',
+    userId: 'user-123',
+    user: { username: 'Test Author' },
     createdAt: new Date().toISOString()
   };
 

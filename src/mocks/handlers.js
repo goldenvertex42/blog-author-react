@@ -6,9 +6,9 @@ let mockPosts = [
 ];
 
 let mockComments = [
-  { id: 1, postId: 1, content: "Great post!", authorName: "Jane Doe", authorId: 2, createdAt: new Date().toISOString() },
-  { id: 2, postId: 1, content: "Very helpful, thanks!", authorName: "John Smith", authorId: 3, createdAt: new Date().toISOString() },
-  { id: 3, postId: 2, content: "First comment here!", authorName: "Alice", authorId: 4, createdAt: new Date().toISOString() },
+  { id: 1, postId: 1, text: "Great post!", user: { username: "janedoe" }, userId: 2, createdAt: new Date().toISOString() },
+  { id: 2, postId: 1, text: "Very helpful, thanks!", user: { username: "johnsmith" }, userId: 3, createdAt: new Date().toISOString() },
+  { id: 3, postId: 2, text: "First comment here!", user: { username: "alice" }, userId: 4, createdAt: new Date().toISOString() },
 ];
 
 export const handlers = [
@@ -30,7 +30,7 @@ export const handlers = [
     }, { status: 200 })
   }),
 
-  http.get('http://localhost:3000/posts', ({ request }) => {
+  http.get('http://localhost:3000/posts/admin', ({ request }) => {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader) return new HttpResponse(null, { status: 401 });
 
@@ -71,9 +71,9 @@ export const handlers = [
     const newComment = {
       id: mockComments.length + 1,
       postId: Number(postId),
-      content: body.content,
-      authorName: "testuser",
-      authorId: 1,          
+      text: body.content,
+      user: { username: "testuser" },
+      userId: 1,          
       createdAt: new Date().toISOString(),
     };
     

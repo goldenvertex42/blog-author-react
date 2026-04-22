@@ -16,7 +16,10 @@ const renderWithProviders = (ui) => {
 
 describe('PostList Integration', () => {
   beforeEach(() => {
-    window.localStorage.setItem('token', 'mock-token');
+    const mockUser = { id: 1, username: 'testuser', exp: Math.floor(Date.now() / 1000) + 3600 };
+    const mockToken = "header." + btoa(JSON.stringify(mockUser)) + ".signature";
+    
+    window.localStorage.setItem('token', mockToken);
     vi.clearAllMocks();
   });
 

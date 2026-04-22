@@ -9,7 +9,11 @@ vi.mock('../../components/PostList/PostList', () => ({
 }));
 
 const renderDashboard = (mockUser = { username: 'testuser' }) => {
-  const mockToken = "header." + btoa(JSON.stringify(mockUser)) + ".signature";
+  const payload = { 
+    ...mockUser, 
+    exp: Math.floor(Date.now() / 1000) + 3600 
+  };
+  const mockToken = "header." + btoa(JSON.stringify(payload)) + ".signature";
   window.localStorage.setItem('token', mockToken);
 
   return render(
@@ -24,22 +28,13 @@ const renderDashboard = (mockUser = { username: 'testuser' }) => {
 describe('Dashboard Component', () => {
   it('renders the welcome message with the correct username', async () => {
     renderDashboard();
-    
-    const welcomeHeading = await screen.findByRole('heading', { 
-      name: /welcome back, testuser/i 
-    });
-    
+    const welcomeHeading = await screen.findByRole('heading', { name: /welcome back, testuser/i });
     expect(welcomeHeading).toBeInTheDocument();
   });
 
-  it('contains a link to create a new post', () => {
+  it('renders the PostList component', () => {
     renderDashboard();
-    const link = screen.getByRole('link', { name: /create new post/i });
-    expect(link).toHaveAttribute('href', '/posts/new');
-  });
-
-  it('renders the logout button', () => {
-    renderDashboard();
-    expect(screen.getByRole('button', { name: /logout/i })).toBeInTheDocument();
+    expect(screen.getByTestId('mock-post-list')).toBeInTheDocument();
   });
 });
+

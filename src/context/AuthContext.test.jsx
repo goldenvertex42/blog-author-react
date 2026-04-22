@@ -2,7 +2,9 @@ import { render, screen } from '@testing-library/react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AuthProvider, useAuth } from './AuthContext';
 
-const MOCK_TOKEN = "header.eyJ1c2VybmFtZSI6InRlc3R1c2VyIn0.signature";
+const futureExp = Math.floor(Date.now() / 1000) + 3600;
+const payload = btoa(JSON.stringify({ username: "testuser", exp: futureExp }));
+const VALID_MOCK_TOKEN = `header.${payload}.signature`;
 
 const TestConsumer = () => {
   const { user, loading } = useAuth();
@@ -27,7 +29,7 @@ describe('AuthContext with Loading State', () => {
   });
 
   it('restores user from localStorage after loading', async () => {
-    window.localStorage.setItem('token', MOCK_TOKEN);
+    window.localStorage.setItem('token', VALID_MOCK_TOKEN);
 
     render(
       <AuthProvider>

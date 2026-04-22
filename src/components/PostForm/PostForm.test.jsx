@@ -38,7 +38,7 @@ describe('PostForm Component', () => {
     renderWithAuth(<PostForm onSave={onSave} />);
 
     await user.type(screen.getByLabelText(/title/i), 'New Post');
-    await user.type(screen.getByLabelText(/content/i), 'Some content');
+    await user.type(screen.getByLabelText(/text/i), 'Some text');
     await user.click(screen.getByRole('button', { name: /create post/i }));
 
     await waitFor(() => {
