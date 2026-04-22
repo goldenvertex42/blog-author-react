@@ -6,6 +6,8 @@ import PostEditor from './PostEditor';
 import { server } from '../../mocks/server';
 import { http, HttpResponse } from 'msw';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 const renderPostEditor = (route = '/posts/new', mockUser = { id: 1, username: 'testuser' }) => {
   const payload = { 
     ...mockUser, 
@@ -42,7 +44,7 @@ describe('PostEditor Page', () => {
 
   it('renders "Edit Post" and fetches data when a postId is provided', async () => {
     server.use(
-      http.get('http://localhost:3000/posts/123', () => {
+      http.get(`${API_URL}/posts/123`, () => {
         return HttpResponse.json({
           id: 123,
           title: 'Fetched Post Title',

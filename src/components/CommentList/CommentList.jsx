@@ -5,6 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import CommentItem from '../CommentItem/CommentItem';
 import styles from './CommentList.module.css';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function CommentList() {
   const { postId } = useParams();
   const { token } = useAuth();
@@ -14,7 +16,7 @@ export default function CommentList() {
 
   const fetchComments = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/posts/${postId}/comments`, {
+      const response = await fetch(`${API_URL}/posts/${postId}/comments`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Failed to fetch comments');
@@ -26,7 +28,7 @@ export default function CommentList() {
       setLoading(false);
     }
   };
-
+  
   useEffect(() => {
     fetchComments();
   }, [postId, token]);
@@ -35,7 +37,7 @@ export default function CommentList() {
     if (!window.confirm("Delete this comment?")) return;
     
     try {
-      const response = await fetch(`http://localhost:3000/comments/${commentId}`, {
+      const response = await fetch(`${API_URL}/comments/${commentId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

@@ -3,6 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import PostItem from '../PostItem/PostItem';
 import styles from './PostList.module.css';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function PostList() {
   const { token } = useAuth();
   const [posts, setPosts] = useState([]);
@@ -11,7 +13,7 @@ export default function PostList() {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch('http://localhost:3000/posts/admin', {
+      const response = await fetch(`${API_URL}/posts/admin`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -35,7 +37,7 @@ export default function PostList() {
       const postToUpdate = posts.find(p => p.id === id);
       if (!postToUpdate) return;
 
-      const response = await fetch(`http://localhost:3000/posts/${id}`, {
+      const response = await fetch(`${API_URL}/posts/${id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json', 
@@ -59,7 +61,7 @@ export default function PostList() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this post?")) return;
     try {
-      const response = await fetch(`http://localhost:3000/posts/${id}`, {
+      const response = await fetch(`${API_URL}/posts/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

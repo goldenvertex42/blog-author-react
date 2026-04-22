@@ -4,6 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import PostForm from '../../components/PostForm/PostForm';
 import styles from './PostEditor.module.css';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function PostEditor() {
   const { postId } = useParams();
   const { token } = useAuth();
@@ -13,7 +15,7 @@ export default function PostEditor() {
   useEffect(() => {
   if (postId) {
       setLoading(true);
-      fetch(`http://localhost:3000/posts/${postId}`, {
+      fetch(`${API_URL}/posts/${postId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
         .then(res => res.json())

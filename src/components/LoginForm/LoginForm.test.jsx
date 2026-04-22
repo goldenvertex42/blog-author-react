@@ -5,6 +5,8 @@ import { http, HttpResponse } from 'msw';
 import { AuthProvider } from '../../context/AuthContext';
 import LoginForm from './LoginForm';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 const renderWithAuth = (ui) => render(<AuthProvider>{ui}</AuthProvider>);
 
 describe('LoginForm', () => {
@@ -36,7 +38,7 @@ describe('LoginForm', () => {
 
   it('displays specific validation errors from the server', async () => {
     server.use(
-      http.post('http://localhost:3000/auth/login', () => {
+      http.post(`${API_URL}/auth/login`, () => {
         return HttpResponse.json({
           errors: [{ path: 'email', msg: 'Email format is invalid' }]
         }, { status: 400 });
@@ -52,7 +54,7 @@ describe('LoginForm', () => {
 
   it('displays a generic error message on 401 failure', async () => {
     server.use(
-      http.post('http://localhost:3000/auth/login', () => {
+      http.post(`${API_URL}/auth/login`, () => {
         return HttpResponse.json(
           { error: 'Invalid email or password' }, 
           { status: 401 }

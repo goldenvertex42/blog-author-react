@@ -5,6 +5,8 @@ import Input from '../Input/Input';
 import Button from '../Button/Button';
 import styles from './PostForm.module.css';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function PostForm({ onSave, initialData = {} }) {
   const navigate = useNavigate();
   const { token } = useAuth();
@@ -28,7 +30,7 @@ export default function PostForm({ onSave, initialData = {} }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const postId = initialData.id || initialData._id;
-    const url = postId ? `http://localhost:3000/posts/${postId}` : 'http://localhost:3000/posts';
+    const url = postId ? `${API_URL}/posts/${postId}` : `${API_URL}/posts`;
     const method = postId ? 'PUT' : 'POST';
     try {
       const response = await fetch(url, {

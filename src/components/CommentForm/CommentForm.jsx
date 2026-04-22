@@ -3,6 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import Button from '../Button/Button';
 import styles from './CommentForm.module.css';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function CommentForm({ postId, initialData = null, onSuccess, onCancel }) {
   const { token } = useAuth();
   const [text, setText] = useState(initialData?.text || '');
@@ -14,8 +16,8 @@ export default function CommentForm({ postId, initialData = null, onSuccess, onC
 
     try {
       const url = initialData 
-        ? `http://localhost:3000/posts/comments/${initialData.id}` 
-        : `http://localhost:3000/posts/${postId}/comments`;
+        ? `${API_URL}/posts/comments/${initialData.id}` 
+        : `${API_URL}/posts/${postId}/comments`;
       
       const response = await fetch(url, {
         method: initialData ? 'PUT' : 'POST',

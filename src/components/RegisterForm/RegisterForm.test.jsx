@@ -5,6 +5,8 @@ import { server } from "../../mocks/server";
 import { http, HttpResponse } from 'msw';
 import RegisterForm from './RegisterForm';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 describe('RegisterForm', () => {
   it('renders all seven input fields and the submit button', () => {
     render(<RegisterForm />);
@@ -53,7 +55,7 @@ describe('RegisterForm', () => {
 
   it('correctly maps and displays multiple validation errors from the server', async () => {
     server.use(
-      http.post('http://localhost:3000/auth/register', () => {
+      http.post(`${API_URL}/auth/register`, () => {
         return HttpResponse.json({
           errors: [
             { path: 'email', msg: 'Email is invalid' },
@@ -74,7 +76,7 @@ describe('RegisterForm', () => {
 
   it('shows generic server error on 500 status', async () => {
     server.use(
-      http.post('http://localhost:3000/auth/register', () => {
+      http.post(`${API_URL}/auth/register`, () => {
         return new HttpResponse(null, { status: 500 });
       })
     );
@@ -88,7 +90,7 @@ describe('RegisterForm', () => {
 
   it('shows connection error when fetch fails', async () => {
     server.use(
-      http.post('http://localhost:3000/auth/register', () => {
+      http.post(`${API_URL}/auth/register`, () => {
         return HttpResponse.error();
       })
     );

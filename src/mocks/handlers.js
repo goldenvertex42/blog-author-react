@@ -1,5 +1,7 @@
 import { http, HttpResponse } from 'msw';
 
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
 let mockPosts = [
   { id: 1, title: "First Post", published: true },
   { id: 2, title: "Second Post", published: false },
@@ -12,7 +14,7 @@ let mockComments = [
 ];
 
 export const handlers = [
-  http.post('http://localhost:3000/auth/register', async ({ request }) => {
+  http.post(`${API_URL}/auth/register`, async ({ request }) => {
     const newUser = await request.json();
     if (newUser.adminCode !== 'super-secret-blog-code') {
       return HttpResponse.json({ error: "Invalid admin code" }, { status: 400 });
@@ -30,18 +32,18 @@ export const handlers = [
     }, { status: 200 })
   }),
 
-  http.get('http://localhost:3000/posts/admin', ({ request }) => {
+  http.get(`${API_URL}/posts/admin`, ({ request }) => {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader) return new HttpResponse(null, { status: 401 });
 
     return HttpResponse.json(mockPosts);
   }),
 
-  http.post('http://localhost:3000/posts', async ({ request }) => {
+  http.post(`${API_URL}/posts`, async ({ request }) => {
     return HttpResponse.json({ message: "Post created" }, { status: 201 });
   }),
 
-  http.put('http://localhost:3000/posts/:id', async ({ request, params }) => {
+  http.put(`${API_URL}/posts/:id`, async ({ request, params }) => {
     const { id } = params;
     const body = await request.json();
     
@@ -52,19 +54,19 @@ export const handlers = [
     return HttpResponse.json({ message: "Updated successfully" });
   }),
 
-  http.delete('http://localhost:3000/posts/:id', ({ params }) => {
+  http.delete(`${API_URL}/posts/:id`, ({ params }) => {
     const { id } = params;
     mockPosts = mockPosts.filter(p => p.id !== Number(id));
     return new HttpResponse(null, { status: 204 });
   }),
 
-  http.get('http://localhost:3000/posts/:postId/comments', ({ params }) => {
+  http.get(`${API_URL}/posts/:postId/comments`, ({ params }) => {
     const { postId } = params;
     const filteredComments = mockComments.filter(c => c.postId === Number(postId));
     return HttpResponse.json(filteredComments);
   }),
 
-  http.post('http://localhost:3000/posts/:postId/comments', async ({ request, params }) => {
+  http.post(`${API_URL}/posts/:postId/comments`, async ({ request, params }) => {
     const { postId } = params;
     const body = await request.json();
     
@@ -81,7 +83,7 @@ export const handlers = [
     return HttpResponse.json(newComment, { status: 201 });
   }),
 
-  http.delete('http://localhost:3000/comments/:id', ({ params }) => {
+  http.delete(`${API_URL}/comments/:id`, ({ params }) => {
     const { id } = params;
     mockComments = mockComments.filter(c => c.id !== Number(id));
     return new HttpResponse(null, { status: 204 });
