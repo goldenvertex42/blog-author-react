@@ -37,6 +37,24 @@ a {
   color: inherit;
 }
 
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background-color: var(--btn-bg);
+  color: var(--btn-color);
+}
+
+.btn-primary:hover {
+  background-color: var(--btn-hover-bg);
+}
+
 .not-found {
   display: flex;
   flex-direction: column;
