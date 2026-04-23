@@ -32,7 +32,7 @@ const Sidebar = () => {
         </NavLink>
 
         <a 
-          href="https://your-reader-frontend.com" 
+          href={import.meta.env.VITE_READER_APP_URL} 
           target="_blank" 
           rel="noopener noreferrer" 
           className={styles.navItem}
