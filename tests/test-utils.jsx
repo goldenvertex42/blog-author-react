@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../src/context/AuthContext';
 
 export function renderWithRouter(ui, { route = '/', path = '/', loaderData = null, userValue = null } = {}) {
   const routes = [
