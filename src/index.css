@@ -11,7 +11,7 @@
   --bg: #f8fafc;
   --text-main: #1e293b;
   --text-muted: #64748b;
-  
+
   --btn-bg: #2563eb;
   --btn-color: #ffffff;
   --btn-border: #2563eb;
@@ -36,4 +36,3 @@ a {
   text-decoration: none;
   color: inherit;
 }
-
