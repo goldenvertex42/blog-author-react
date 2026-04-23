@@ -5,12 +5,7 @@ import styles from './RegisterPage.module.css';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-
-  if (user) {
-    return <Navigate to="/" replace />;
-  }
-
+  
   return (
     <div className={styles.page_container}>
       <div className={styles.auth_card}>
@@ -18,6 +13,12 @@ export default function RegisterPage() {
         <RegisterForm onSuccess={() => navigate('/login')} />
         <p className={styles.toggle_text}>
           Already have an account? <Link to="/login">Login</Link>
+        </p>
+        <p className={styles.toggle_text}>  
+          Just want to join the discussion and read posts?
+          <a href={`${import.meta.env.VITE_READER_APP_URL}/register`}>
+            Register as a Reader ↗
+          </a>
         </p>
       </div>
     </div>

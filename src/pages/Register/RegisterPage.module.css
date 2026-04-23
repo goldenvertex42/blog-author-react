@@ -1,10 +1,9 @@
-/* LoginPage.module.css & RegisterPage.module.css */
 .page_container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: var(--bg); 
 }
 
 .auth_card {
@@ -20,18 +19,22 @@
   text-align: center;
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
-  color: #1e293b;
+  color: var(--text-main); 
 }
 
 .toggle_text {
   text-align: center;
   margin-top: 1.5rem;
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .toggle_text a {
-  color: #2563eb;
+  color: var(--primary);
   text-decoration: none;
   font-weight: 600;
+}
+
+.toggle_text a:hover {
+  color: var(--btn-hover-bg);
 }
