@@ -4,12 +4,15 @@ import { useAuth } from '../../context/AuthContext';
 import styles from './Sidebar.module.css';
 
 const Sidebar = () => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
     <aside className={styles.sidebar}>
       <div className={styles.header}>
         <h1 className={styles.title}>Author Portal</h1>
+        <div className={styles.welcome_section}>
+          <h2>Welcome back, <span className={styles.username}>{user?.username}</span></h2>
+        </div>
       </div>
 
       <nav className={styles.nav}>
