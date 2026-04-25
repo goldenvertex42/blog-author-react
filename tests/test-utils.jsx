@@ -1,23 +1,32 @@
 import { render } from '@testing-library/react';
-import { createMemoryRouter, RouterProvider } from 'react-router';
+import { createRoutesStub } from 'react-router';
 import { AuthContext } from '../src/context/AuthContext';
 
-export function renderWithRouter(ui, { route = '/', path = '/', loaderData = null, userValue = null } = {}) {
-  const routes = [
+export function renderWithRouter(ui, { route = '/', path = route, loaderData = null, action, userValue = { user: null } } = {}) {
+  const providerValue = {
+    ...userValue,
+    login: userValue.login || vi.fn(), // Provide a mock function if one isn't passed
+    logout: userValue.logout || vi.fn(),
+  };
+
+  const Stub = createRoutesStub([
     {
       path: path,
-      element: (
-        <AuthContext.Provider value={userValue}>
+      Component: () => (
+        <AuthContext.Provider value={providerValue}>
           {ui}
         </AuthContext.Provider>
       ),
-      loader: loaderData ? () => loaderData : undefined,
+      loader: () => loaderData,
+      action: action,
+      HydrateFallback: () => <div>Loading...</div> 
     },
-  ];
 
-  const router = createMemoryRouter(routes, {
-    initialEntries: [route],
-  });
+    { path: "/", Component: () => <div>Home</div> },
+    { path: "/login", Component: () => <div>Login</div> }
+  ]);
 
-  return render(<RouterProvider router={router} />);
+  return render(<Stub initialEntries={[route]} />);
 }
+
+
