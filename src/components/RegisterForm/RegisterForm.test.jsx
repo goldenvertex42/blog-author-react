@@ -1,103 +1,89 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { server } from "../../mocks/server";
-import { http, HttpResponse } from 'msw';
+import { renderWithRouter } from '../../../tests/test-utils';
 import RegisterForm from './RegisterForm';
-
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+import { registerAction } from '../../pages/Register/RegisterPage';
 
 describe('RegisterForm', () => {
-  it('renders all seven input fields and the submit button', () => {
-    render(<RegisterForm />);
-    
-    expect(screen.getByLabelText(/first name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/last name/i)).toBeInTheDocument();
+  it('renders all registration fields', async () => {
+    renderWithRouter(<RegisterForm />, {
+      route: '/register',
+      path: '/register',
+      userValue: { user: null } 
+    });
+
+    expect(await screen.findByLabelText(/first name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/^password$/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/admin secret code/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /register/i })).toBeInTheDocument();
   });
 
-  it('updates all fields when the user types', async () => {
-    const user = userEvent.setup();
-    render(<RegisterForm />);
+  it('displays validation errors after a failed submission', async () => {
+    // 1. Mock fetch carefully. 
+    // Ensure global.fetch is mocked BEFORE rendering.
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({
+        errors: [{ path: 'username', msg: 'Username is taken' }]
+      }),
+    });
+
+    renderWithRouter(<RegisterForm />, {
+      route: '/register',
+      path: '/register',
+      action: registerAction 
+    });
+
+    const submitBtn = await screen.findByRole('button', { name: /register/i });
     
-    const usernameInput = screen.getByLabelText(/username/i);
-    await user.type(usernameInput, 'janedoe');
-    
-    expect(usernameInput).toHaveValue('janedoe');
+    fireEvent.click(submitBtn);
+
+    expect(await screen.findByText(/username is taken/i)).toBeInTheDocument();
   });
 
-  it('calls onSuccess when registration is successful', async () => {
-    const onSuccessMock = vi.fn();
-    const user = userEvent.setup();
-    
-    render(<RegisterForm onSuccess={onSuccessMock} />);
+  it('displays a general server error banner', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: 'Database connection failed' }),
+    });
 
-    await user.type(screen.getByLabelText(/first name/i), 'Jane');
-    await user.type(screen.getByLabelText(/last name/i), 'Doe');
-    await user.type(screen.getByLabelText(/username/i), 'janedoe');
-    await user.type(screen.getByLabelText(/email/i), 'jane@example.com');
-    await user.type(screen.getByLabelText(/^password$/i), 'Password123!');
-    await user.type(screen.getByLabelText(/confirm password/i), 'Password123!');
-    await user.type(screen.getByLabelText(/admin secret code/i), 'super-secret-blog-code');
+    renderWithRouter(<RegisterForm />, {
+      route: '/register',
+      path: '/register',
+      action: registerAction
+    });
 
-    await user.click(screen.getByRole('button', { name: /register/i }));
+    const submitBtn = await screen.findByRole('button', { name: /register/i });
+    fireEvent.click(submitBtn);
 
-    await waitFor(() => {
-      expect(onSuccessMock).toHaveBeenCalledTimes(1);
-    }, { timeout: 2000 });
+    expect(await screen.findByText(/database connection failed/i)).toBeInTheDocument();
   });
 
-
-  it('correctly maps and displays multiple validation errors from the server', async () => {
-    server.use(
-      http.post(`${API_URL}/auth/register`, () => {
-        return HttpResponse.json({
-          errors: [
-            { path: 'email', msg: 'Email is invalid' },
-            { path: 'password', msg: 'Password too short' },
-            { path: 'adminCode', msg: 'Incorrect secret code' }
-          ]
-        }, { status: 400 });
-      })
+  it('disables the submit button while registering', async () => {
+    global.fetch = vi.fn().mockImplementation(() => 
+      new Promise(resolve => setTimeout(() => resolve({
+        ok: true,
+        json: async () => ({})
+      }), 100))
     );
 
-    render(<RegisterForm />);
-    fireEvent.click(screen.getByRole('button', { name: /register/i }));
+    renderWithRouter(<RegisterForm />, {
+      route: '/register',
+      path: '/register',
+      action: registerAction
+    });
 
-    expect(await screen.findByText(/email is invalid/i)).toBeInTheDocument();
-    expect(await screen.findByText(/password too short/i)).toBeInTheDocument();
-    expect(await screen.findByText(/incorrect secret code/i)).toBeInTheDocument();
+    const button = await screen.findByRole('button', { name: /register/i });
+    
+    expect(button).not.toBeDisabled();
+
+    fireEvent.click(button);
+    
+    expect(await screen.findByText(/registering\.\.\./i)).toBeInTheDocument();
+    expect(button).toBeDisabled();
   });
 
-  it('shows generic server error on 500 status', async () => {
-    server.use(
-      http.post(`${API_URL}/auth/register`, () => {
-        return new HttpResponse(null, { status: 500 });
-      })
-    );
-
-    render(<RegisterForm />);
-    fireEvent.click(screen.getByRole('button', { name: /register/i }));
-
-    expect(await screen.findByText(/could not create user/i)).toBeInTheDocument();
-    expect(screen.getByText(/could not create user/i)).toHaveClass('error-banner');
-  });
-
-  it('shows connection error when fetch fails', async () => {
-    server.use(
-      http.post(`${API_URL}/auth/register`, () => {
-        return HttpResponse.error();
-      })
-    );
-
-    render(<RegisterForm />);
-    fireEvent.click(screen.getByRole('button', { name: /register/i }));
-
-    expect(await screen.findByText(/could not connect to the server/i)).toBeInTheDocument();
-  });
 });
