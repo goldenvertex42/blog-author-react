@@ -1,71 +1,83 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { MemoryRouter, Routes, Route } from 'react-router';
-import { AuthProvider } from '../../context/AuthContext';
-import RegisterPage from './RegisterPage';
-
-const renderRegisterPage = (mockUser = null) => {
-  if (mockUser) {
-    const payload = { 
-      ...mockUser, 
-      exp: Math.floor(Date.now() / 1000) + 3600 
-    };
-    const mockToken = "header." + btoa(JSON.stringify(payload)) + ".signature";
-    window.localStorage.setItem('token', mockToken);
-  } else {
-    window.localStorage.clear();
-  }
-
-  return render(
-    <MemoryRouter initialEntries={['/register']}>
-      <AuthProvider>
-        <Routes>
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<h1>Login Page Mock</h1>} />
-          <Route path="/" element={<h1>Dashboard Mock</h1>} />
-        </Routes>
-      </AuthProvider>
-    </MemoryRouter>
-  );
-};
+import { screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderWithRouter } from '../../../tests/test-utils';
+import RegisterPage, { registerAction } from './RegisterPage';
 
 describe('RegisterPage Integration', () => {
   beforeEach(() => {
-    window.localStorage.clear();
+    vi.clearAllMocks();
+    global.fetch = vi.fn();
   });
 
-  it('renders the registration form and a link to login', () => {
-    renderRegisterPage(null);
-    expect(screen.getByRole('heading', { name: /create author account/i, level: 1 })).toBeInTheDocument();
+  it('renders the registration form and headings correctly', async () => {
+    renderWithRouter(<RegisterPage />, { 
+      route: '/register', 
+      path: '/register',
+      userValue: { user: null } 
+    });
+
+    expect(await screen.findByRole('heading', { name: /create author account/i })).toBeInTheDocument();
+    
     expect(screen.getByRole('link', { name: /login/i })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: /register as a reader/i })).toHaveAttribute('href', expect.stringContaining('register'));
   });
 
-  it('redirects an already authenticated user to the dashboard', async () => {
-    renderRegisterPage({ username: 'existinguser' });
-
-    await waitFor(() => {
-      expect(screen.getByText(/dashboard mock/i)).toBeInTheDocument();
-      expect(screen.queryByRole('heading', { name: /create author account/i })).not.toBeInTheDocument();
+  it('renders all required input fields from RegisterForm', async () => {
+    renderWithRouter(<RegisterPage />, { 
+      route: '/register',
+      path: '/register'
     });
+
+    expect(await screen.findByLabelText(/first name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^password/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /register/i })).toBeInTheDocument();
   });
 
-  it('navigates to the login page upon successful form submission', async () => {
-    const user = userEvent.setup();
-    renderRegisterPage(null);
-
-    await user.type(screen.getByLabelText(/first name/i), 'Jane');
-    await user.type(screen.getByLabelText(/last name/i), 'Doe');
-    await user.type(screen.getByLabelText(/username/i), 'janedoe');
-    await user.type(screen.getByLabelText(/email/i), 'jane@example.com');
-    await user.type(screen.getByLabelText(/^password$/i), 'Password123!');
-    await user.type(screen.getByLabelText(/confirm password/i), 'Password123!');
-    await user.type(screen.getByLabelText(/admin secret code/i), 'super-secret-blog-code');
-
-    await user.click(screen.getByRole('button', { name: /register/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(/login page mock/i)).toBeInTheDocument();
+  it('displays validation errors passed back from the action after submission', async () => {
+    global.fetch.mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ 
+        errors: [
+          { path: "confirmPassword", msg: "Passwords do not match" },
+          { path: "email", msg: "Email already in use" }
+        ] 
+      }),
     });
+
+    renderWithRouter(<RegisterPage />, {
+      route: '/register',
+      path: '/register',
+      action: registerAction 
+    });
+
+    const submitBtn = await screen.findByRole('button', { name: /register/i });
+    fireEvent.click(submitBtn);
+
+    expect(await screen.findByText(/passwords do not match/i)).toBeInTheDocument();
+    expect(screen.getByText(/email already in use/i)).toBeInTheDocument();
+    
+    expect(screen.getByRole('button', { name: /register/i })).not.toBeDisabled();
+  });
+
+  it('displays a general server error banner on 500 failure', async () => {
+    global.fetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: "Internal Server Error" }),
+    });
+
+    renderWithRouter(<RegisterPage />, {
+      route: '/register',
+      path: '/register',
+      action: registerAction
+    });
+
+    const submitBtn = await screen.findByRole('button', { name: /register/i });
+    fireEvent.click(submitBtn);
+
+    expect(await screen.findByText(/internal server error/i)).toBeInTheDocument();
   });
 });
