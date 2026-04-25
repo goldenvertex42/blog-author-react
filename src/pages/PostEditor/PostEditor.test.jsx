@@ -1,65 +1,81 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { MemoryRouter, Routes, Route } from 'react-router';
-import { AuthProvider } from '../../context/AuthContext';
-import PostEditor from './PostEditor';
-import { server } from '../../mocks/server';
-import { http, HttpResponse } from 'msw';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderWithRouter } from '../../../tests/test-utils';
+import PostEditor, { postEditorLoader, postEditorAction } from './PostEditor';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL;
-
-const renderPostEditor = (route = '/posts/new', mockUser = { id: 1, username: 'testuser' }) => {
-  const payload = { 
-    ...mockUser, 
-    exp: Math.floor(Date.now() / 1000) + 3600 
-  };
-
-  const mockToken = "header." + btoa(JSON.stringify(payload)) + ".signature";
-  
-  window.localStorage.setItem('token', mockToken);
-
-  return render(
-    <MemoryRouter initialEntries={[route]}>
-      <AuthProvider>
-        <Routes>
-          <Route path="/posts/new" element={<PostEditor />} />
-          <Route path="/posts/edit/:postId" element={<PostEditor />} />
-          <Route path="/" element={<h1>Dashboard Mock</h1>} />
-        </Routes>
-      </AuthProvider>
-    </MemoryRouter>
-  );
-};
-
-
-describe('PostEditor Page', () => {
+describe('PostEditor Integration', () => {
   beforeEach(() => {
-    window.localStorage.clear();
+    vi.clearAllMocks();
+    global.fetch = vi.fn();
+    window.localStorage.setItem('token', 'mock-token');
   });
 
-  it('renders "Create New Post" when no ID is provided', () => {
-    renderPostEditor('/posts/new');
-    expect(screen.getByRole('heading', { name: /create new post/i })).toBeInTheDocument();
+  it('renders "Create New Post" when no postId is present', async () => {
+    renderWithRouter(<PostEditor />, {
+      route: '/posts/new',
+      path: '/posts/new',
+      loaderData: null 
+    });
+
+    expect(await screen.findByRole('heading', { name: /create new post/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /create post/i })).toBeInTheDocument();
   });
 
-  it('renders "Edit Post" and fetches data when a postId is provided', async () => {
-    server.use(
-      http.get(`${API_URL}/posts/123`, () => {
-        return HttpResponse.json({
-          id: 123,
-          title: 'Fetched Post Title',
-          content: 'Fetched content.',
-          published: true
-        });
-      })
-    );
+  it('renders "Edit Post" and pre-fills data when postId is present', async () => {
+    renderWithRouter(<PostEditor />, {
+      route: '/posts/123/edit',
+      path: '/posts/:postId/edit',
+      loaderData: { id: '123', title: 'Existing Post', text: 'Some content' }
+    });
 
-    renderPostEditor('/posts/edit/123');
+    expect(await screen.findByRole('heading', { name: /edit post/i })).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Existing Post')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /update post/i })).toBeInTheDocument();
+  });
 
-    const heading = await screen.findByRole('heading', { name: /edit post/i });
-    expect(heading).toBeInTheDocument();
+  it('successfully submits the form and triggers the action', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'new-id' }),
+    });
+
+    renderWithRouter(<PostEditor />, {
+      route: '/posts/new',
+      path: '/posts/new',
+      action: postEditorAction 
+    });
 
     const titleInput = await screen.findByLabelText(/title/i);
-    expect(titleInput).toHaveValue('Fetched Post Title');
+    const textInput = screen.getByLabelText(/text/i);
+    const submitBtn = screen.getByRole('button', { name: /create post/i });
+
+    fireEvent.change(titleInput, { target: { value: 'New Blog Post' } });
+    fireEvent.change(textInput, { target: { value: 'Blog content' } });
+    
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/posts'),
+        expect.objectContaining({
+          method: 'POST'
+        })
+      );
+    });
+  });
+
+  it('postEditorAction correctly maps server errors', async () => {
+    const mockRequest = {
+      formData: async () => new FormData(),
+    };
+    
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ errors: [{ path: 'title', msg: 'Too short' }] })
+    });
+
+    const result = await postEditorAction({ request: mockRequest, params: {} });
+    expect(result.errors.title).toBe('Too short');
   });
 });

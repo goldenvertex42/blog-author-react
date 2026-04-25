@@ -1,50 +1,85 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router';
-import { useAuth } from '../../context/AuthContext';
+import { useLoaderData, useParams, redirect } from 'react-router';
 import PostForm from '../../components/PostForm/PostForm';
 import styles from './PostEditor.module.css';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
 
-export default function PostEditor() {
-  const { postId } = useParams();
-  const { token } = useAuth();
-  const [initialData, setInitialData] = useState(null);
-  const [loading, setLoading] = useState(false);
+export async function postEditorLoader({ params }) {
+  const { postId } = params;
+  
+  if (!postId) return null;
 
-  useEffect(() => {
-  if (postId) {
-      setLoading(true);
-      fetch(`${API_URL}/posts/${postId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-        .then(res => res.json())
-        .then(data => {
-          setInitialData(data);
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
-    } else {
-      setInitialData(null);
-      setLoading(false);
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/posts/${postId}`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) throw new Response("Post Not Found", { status: 404 });
+    throw new Response("Failed to fetch post", { status: response.status });
+  }
+
+  return response.json();
+}
+
+export async function postEditorAction({ request, params }) {
+  const { postId } = params;
+  const formData = await request.formData();
+  const updates = {
+    title: formData.get("title"),
+    text: formData.get("text"),
+    published: formData.get("published") === "on",
+  };
+
+  const token = localStorage.getItem('token');
+  const method = postId ? "PUT" : "POST";
+  const url = postId ? `${API_URL}/posts/${postId}` : `${API_URL}/posts`;
+
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(updates),
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      if (result.errors) {
+        const errorObject = result.errors.reduce((acc, err) => {
+          acc[err.path || err.param] = err.msg;
+          return acc;
+        }, {});
+        return { errors: errorObject };
+      }
+      return { serverError: result.message || result.error || "Failed to save post" };
     }
-  }, [postId, token]);
+
+    return redirect("/");
+  } catch (err) {
+    return { serverError: "Could not connect to the server" };
+  }
+}
 
 
-  if (loading) return <div className="loading">Loading post editor...</div>;
+export default function PostEditor() {
+  const post = useLoaderData(); 
+  const { postId } = useParams();
+  const isEditMode = Boolean(postId);
 
   return (
-    <div className={styles.editor_page}>
+    <div className={styles.editor_container}>
       <header className={styles.editor_header}>
-        <h1>{postId ? 'Edit Post' : 'Create New Post'}</h1>
+        <h1>{isEditMode ? 'Edit Post' : 'Create New Post'}</h1>
       </header>
       
-      <main className={styles.editor_container}>
+      <main className={styles.editor_main}>
         <PostForm 
-          key={initialData?.id || 'new'} 
-          initialData={initialData || { title: '', content: '', published: false }} 
+        initialData={post || {}}
+        key={post?.id || 'new'} 
         />
-        
       </main>
     </div>
   );
