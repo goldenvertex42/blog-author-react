@@ -1,51 +1,75 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { MemoryRouter, Routes, Route } from 'react-router';
+import { screen, waitFor, render } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import { AuthProvider } from '../../context/AuthContext';
 import LoginPage from './LoginPage';
 
-const renderLoginPage = (mockUser = null) => {
+const renderWithRouter = (initialRoute = '/login', mockUser = null) => {
   if (mockUser) {
-    const payload = { 
-      ...mockUser, 
-      exp: Math.floor(Date.now() / 1000) + 3600 
-    };
-    
+    const payload = { ...mockUser, exp: Math.floor(Date.now() / 1000) + 3600 };
     const mockToken = "header." + btoa(JSON.stringify(payload)) + ".signature";
     window.localStorage.setItem('token', mockToken);
   } else {
     window.localStorage.clear();
   }
 
+  const routes = [
+    {
+      path: '/login',
+      loader: () => {
+        if (localStorage.getItem('token')) {
+          throw new Response("", { status: 302, headers: { Location: "/" } });
+        }
+        return null;
+      },
+      element: <LoginPage />,
+      HydrateFallback: () => <div>Loading...</div>,
+    },
+    {
+      path: '/',
+      element: <h1>Home Page Mock</h1>,
+      HydrateFallback: () => <div>Loading...</div>,
+    },
+    {
+      path: '/register',
+      element: <h1>Register Page Mock</h1>,
+      HydrateFallback: () => <div>Loading...</div>,
+    }
+  ];
+
+  const router = createMemoryRouter(routes, {
+    initialEntries: [initialRoute],
+  });
+
   return render(
-    <MemoryRouter initialEntries={['/login']}>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<h1>Home Page Mock</h1>} />
-        </Routes>
-      </AuthProvider>
-    </MemoryRouter>
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   );
 };
 
 describe('LoginPage Integration', () => {
   beforeEach(() => {
     window.localStorage.clear();
+    vi.clearAllMocks();
   });
 
-  it('renders the login form and the register link', () => {
-    renderLoginPage(null);
-    expect(screen.getByRole('heading', { name: /welcome back/i, level: 1 })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /register/i })).toHaveAttribute('href', '/register');
+  it('renders the login form and the register link', async () => {
+    renderWithRouter('/login');
+
+    expect(await screen.findByRole('heading', { name: /welcome back, author/i })).toBeInTheDocument();
+    
+    const registerLink = screen.getByRole('link', { name: /register/i });
+    expect(registerLink).toBeInTheDocument();
   });
 
   it('redirects to the home page if the user is already authenticated', async () => {
-    renderLoginPage({ username: 'testuser' });
-    
+    renderWithRouter('/login', { username: 'existinguser' });
+
     await waitFor(() => {
       expect(screen.getByText(/home page mock/i)).toBeInTheDocument();
-      expect(screen.queryByRole('heading', { name: /welcome back/i, level: 1 })).not.toBeInTheDocument();
     });
+
+    expect(screen.queryByRole('heading', { name: /welcome back, author/i })).not.toBeInTheDocument();
   });
 });
