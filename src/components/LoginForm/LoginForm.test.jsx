@@ -1,73 +1,85 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import { server } from "../../mocks/server";
-import { http, HttpResponse } from 'msw';
-import { AuthProvider } from '../../context/AuthContext';
+import { screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderWithRouter } from '../../../tests/test-utils';
 import LoginForm from './LoginForm';
+import { loginAction } from '../../pages/Login/LoginPage';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+describe('LoginForm Integration', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    global.fetch = vi.fn();
+    window.localStorage.clear();
+  });
 
-const renderWithAuth = (ui) => render(<AuthProvider>{ui}</AuthProvider>);
+  it('renders email and password inputs and a submit button', async () => {
+    renderWithRouter(<LoginForm />, {
+      route: '/login',
+      path: '/login'
+    });
 
-describe('LoginForm', () => {
-  it('renders email and password inputs and a submit button', () => {
-    renderWithAuth(<LoginForm />);
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    expect(await screen.findByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
   });
 
-  it('updates input values on change', () => {
-    renderWithAuth(<LoginForm />);
-    const emailInput = screen.getByLabelText(/email/i);
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    expect(emailInput.value).toBe('test@example.com');
-  });
-
-  it('handles successful login and clears errors', async () => {
-    renderWithAuth(<LoginForm />);
-    
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'test@example.com' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByRole('button', { name: /login/i }));
-
-    await waitFor(() => {
-      expect(screen.queryByText(/invalid/i)).not.toBeInTheDocument();
+  it('displays specific validation errors from the action', async () => {
+    global.fetch.mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ 
+        errors: [{ path: 'email', msg: 'Email format is invalid' }] 
+      }),
     });
-  });
 
-  it('displays specific validation errors from the server', async () => {
-    server.use(
-      http.post(`${API_URL}/auth/login`, () => {
-        return HttpResponse.json({
-          errors: [{ path: 'email', msg: 'Email format is invalid' }]
-        }, { status: 400 });
-      })
-    );
+    renderWithRouter(<LoginForm />, {
+      route: '/login',
+      path: '/login',
+      action: loginAction
+    });
 
-    renderWithAuth(<LoginForm />);
-    fireEvent.click(screen.getByRole('button', { name: /login/i }));
+    const submitBtn = await screen.findByRole('button', { name: /login/i });
+    fireEvent.click(submitBtn);
 
-    const errorMsg = await screen.findByText(/email format is invalid/i);
-    expect(errorMsg).toBeInTheDocument();
+    expect(await screen.findByText(/email format is invalid/i)).toBeInTheDocument();
   });
 
   it('displays a generic error message on 401 failure', async () => {
-    server.use(
-      http.post(`${API_URL}/auth/login`, () => {
-        return HttpResponse.json(
-          { error: 'Invalid email or password' }, 
-          { status: 401 }
-        );
-      })
-    );
+    global.fetch.mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ error: 'Invalid email or password.' }),
+    });
 
-    renderWithAuth(<LoginForm />);
-    
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'wrong@test.com' } });
-    fireEvent.click(screen.getByRole('button', { name: /login/i }));
+    renderWithRouter(<LoginForm />, {
+      route: '/login',
+      path: '/login',
+      action: loginAction
+    });
 
-    const errorMessage = await screen.findByText(/invalid email or password/i);
-    expect(errorMessage).toBeInTheDocument();
+    const submitBtn = await screen.findByRole('button', { name: /login/i });
+    fireEvent.click(submitBtn);
+
+    expect(await screen.findByText(/invalid email or password/i)).toBeInTheDocument();
+  });
+
+  it('successfully logs in and saves token to localStorage', async () => {
+    const mockToken = "mock.jwt.token";
+    global.fetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ token: mockToken }),
+    });
+
+    renderWithRouter(<LoginForm />, {
+      route: '/login',
+      path: '/login',
+      action: loginAction
+    });
+
+    const submitBtn = await screen.findByRole('button', { name: /login/i });
+    fireEvent.click(submitBtn);
+
+    await screen.findByRole('button', { name: /login/i });
+    expect(window.localStorage.getItem('token')).toBe(mockToken);
   });
 });
