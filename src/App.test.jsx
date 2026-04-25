@@ -1,52 +1,70 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { describe, it, expect, beforeEach } from 'vitest';
-import { MemoryRouter } from 'react-router';
-import { AuthProvider } from './context/AuthContext';
-import App from './App';
+import { screen } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderWithRouter } from '../tests/test-utils';
+import Dashboard from '../src/pages/Dashboard/Dashboard';
+import PostEditor from '../src/pages/PostEditor/PostEditor';
+import LoginPage from '../src/pages/Login/LoginPage';
 
-const renderApp = (initialRoute = '/', mockUser = null) => {
-  if (mockUser) {
-    const payload = { 
-      ...mockUser, 
-      exp: Math.floor(Date.now() / 1000) + 3600 
-    };
-    const mockToken = "header." + btoa(JSON.stringify(payload)) + ".signature";
-    window.localStorage.setItem('token', mockToken);
-  }
-
-  return render(
-    <MemoryRouter initialEntries={[initialRoute]}>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </MemoryRouter>
-  );
-};
-
-describe('App Routing and Protection', () => {
+describe('Author Application Integration Tests', () => {
   beforeEach(() => {
     window.localStorage.clear();
+    vi.clearAllMocks();
   });
 
-  it('redirects an unauthenticated user from Dashboard to Login', async () => {
-    renderApp('/');
+  it('renders the Dashboard and modular PostList with loader data', async () => {
+    const mockPosts = [
+      { id: 1, title: 'My First Post', published: true, createdAt: new Date().toISOString() }
+    ];
 
-    const loginHeading = await screen.findByRole('heading', { name: /welcome back/i });
-    expect(loginHeading).toBeInTheDocument();
+    renderWithRouter(<Dashboard />, {
+      route: '/',
+      loaderData: mockPosts,
+      userValue: { user: { username: 'testwriter' } }
+    });
+
+    expect(await screen.findByRole('heading', { name: /post overview/i })).toBeInTheDocument();
+
+    expect(screen.getByText('My First Post')).toBeInTheDocument();
+    expect(screen.getByText(/Published/i)).toBeInTheDocument();
   });
 
-  it('allows an authenticated user to access the Dashboard', async () => {
-  renderApp('/', { username: 'testuser' });
+  it('renders the Post Editor in "New" mode', async () => {
+    renderWithRouter(<PostEditor />, {
+      route: '/posts/new',
+      loaderData: null,
+      userValue: { user: { username: 'testwriter' } }
+    });
 
-  expect(await screen.findByText(/testuser/i)).toBeInTheDocument();
-  expect(screen.getByText(/Welcome back,/i)).toBeInTheDocument();
-});
+    expect(await screen.findByRole('heading', { name: /create new post/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /create post/i })).toBeInTheDocument();
+  });
+
+  it('renders the Post Editor in "Edit" mode with pre-filled data', async () => {
+    const mockPost = { 
+      id: '123', 
+      title: 'Existing Post', 
+      text: 'Hello world', 
+      published: false 
+    };
+
+    renderWithRouter(<PostEditor />, {
+      route: '/posts/123/edit',
+      path: '/posts/:postId/edit',
+      loaderData: mockPost,
+      userValue: { user: { username: 'testwriter' } }
+    });
+
+    expect(await screen.findByRole('heading', { name: /edit post/i })).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Existing Post')).toBeInTheDocument();
+  });
 
 
-  it('redirects an unauthenticated user from PostEditor to Login', async () => {
-    renderApp('/posts/new');
+  it('renders the Login page with correct heading', async () => {
+    renderWithRouter(<LoginPage />, {
+      route: '/login',
+      userValue: { user: null }
+    });
 
-    const loginHeading = await screen.findByRole('heading', { name: /welcome back/i });
-    expect(loginHeading).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /welcome back, author/i })).toBeInTheDocument();
   });
 });

@@ -10,14 +10,13 @@ import {
 import { AuthProvider } from './context/AuthContext';
 import AuthorLayout from './components/layouts/AuthorLayout';
 
-// Pages
-import LoginPage from './pages/Login/LoginPage';
-import RegisterPage from './pages/Register/RegisterPage';
+import LoginPage, { loginAction } from './pages/Login/LoginPage';
+import RegisterPage, { registerAction } from './pages/Register/RegisterPage';
 import Dashboard from './pages/Dashboard/Dashboard';
-import PostEditor from './pages/PostEditor/PostEditor';
+import { postLoader, postListAction } from './components/PostList/PostList';
+import PostEditor, { postEditorLoader, postEditorAction } from './pages/PostEditor/PostEditor';
 import CommentPage from './pages/CommentPage/CommentPage';
 
-// Redirect logged-in users away from Login/Register
 const authLoader = () => {
   if (localStorage.getItem('token')) {
     return redirect('/');
@@ -25,7 +24,6 @@ const authLoader = () => {
   return null;
 };
 
-// Protect author-only routes via loader
 const protectedLoader = () => {
   if (!localStorage.getItem('token')) {
     return redirect('/login');
@@ -33,21 +31,57 @@ const protectedLoader = () => {
   return null;
 };
 
+function logoutAction() {
+  localStorage.removeItem('token');
+  return redirect("/login");
+}
+
 export const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<AuthProvider><Outlet /></AuthProvider>}>
-      
-      {/* Public Auth Routes with authLoader */}
+      <Route 
+        path="logout" 
+        action={logoutAction} 
+      />
+
       <Route loader={authLoader}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route 
+          path="/login" 
+          element={<LoginPage />} 
+          loader={authLoader} 
+          action={loginAction} 
+        />
+
+        <Route 
+          path="/register" 
+          element={<RegisterPage />} 
+          loader={authLoader} 
+          action={registerAction} 
+        />
       </Route>
 
-      {/* Private Author Routes with protectedLoader */}
       <Route element={<AuthorLayout />} loader={protectedLoader}>
-        <Route index element={<Dashboard />} />
-        <Route path="posts/new" element={<PostEditor />} />
-        <Route path="posts/edit/:postId" element={<PostEditor />} />
+        <Route 
+          index 
+          element={<Dashboard />} 
+          loader={postLoader} 
+          action={postListAction} 
+        />
+        
+        <Route 
+          path="posts/new" 
+          element={<PostEditor />} 
+          loader={postEditorLoader} 
+          action={postEditorAction} 
+        />
+        
+        <Route 
+          path="posts/:postId/edit" 
+          element={<PostEditor />} 
+          loader={postEditorLoader} 
+          action={postEditorAction} 
+        />
+
         <Route path="posts/:postId/comments" element={<CommentPage />} />
       </Route>
 
