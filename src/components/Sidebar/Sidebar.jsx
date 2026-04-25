@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, Form } from 'react-router';
 import { useAuth } from '../../context/AuthContext';
 import styles from './Sidebar.module.css';
 
@@ -45,11 +45,14 @@ const Sidebar = () => {
         </a>
       </nav>
 
-      <div className={styles.footer}>
-        <button onClick={logout} className={styles.logoutButton}>
-          Logout
-        </button>
-      </div>
+      <Form 
+        method="post" 
+        action="/logout" 
+        className={styles.footer}
+        onSubmit={() => logout()} // Still clear the React state for immediate UI feedback
+      >
+        <button type="submit" className={styles.logoutButton}>Logout</button>
+      </Form>
     </aside>
   );
 };
