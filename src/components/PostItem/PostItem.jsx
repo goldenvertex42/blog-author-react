@@ -1,43 +1,56 @@
-import { Link } from 'react-router';
+import { Link, useFetcher } from 'react-router';
 import styles from './PostItem.module.css';
 
-/**
- * PostItem Component
- * @param {Object} post - The post object containing id, title, and published status
- * @param {Function} onTogglePublish - Callback to handle publishing/unpublishing
- * @param {Function} onDelete - Callback to handle post deletion
- */
-export default function PostItem({ post, onTogglePublish, onDelete }) {
+export default function PostItem({ post }) {
+  const fetcher = useFetcher();
+  
+  const isDeleting = fetcher.formData?.get("intent") === "delete" && 
+                     fetcher.formData?.get("postId") === String(post.id);
+
+  if (isDeleting) return null;
+
   return (
     <div className={styles.post_item} data-testid="post-item">
       <div className={styles.post_content}>
         <h3 className={styles.post_title}>{post.title}</h3>
-        <span 
-          className={`${styles.status_badge} ${post.published ? styles.published : styles.draft}`}
-        >
+        <span className={`${styles.status_badge} ${post.published ? styles.published : styles.draft}`}>
           {post.published ? 'Published' : 'Draft'}
         </span>
       </div>
-      
+
       <div className={styles.post_actions}>
-        <button 
-          className={styles.action_btn} 
-          onClick={() => onTogglePublish(post.id)}
-        >
-          {post.published ? 'Unpublish' : 'Publish'}
-        </button>
-        
-        <Link to={`/posts/edit/${post.id}`} className={styles.action_btn}>
+        <fetcher.Form method="post" style={{ display: 'inline' }}>
+          <input type="hidden" name="postId" value={post.id} />
+          <input type="hidden" name="published" value={String(post.published)} />
+          <button 
+            type="submit" 
+            name="intent" 
+            value="toggle-publish" 
+            className={styles.action_btn}
+          >
+            {post.published ? 'Unpublish' : 'Publish'}
+          </button>
+        </fetcher.Form>
+
+        <Link to={`/posts/${post.id}/edit`} className={styles.action_btn}>
           Edit
         </Link>
-        <Link to={`/posts/${post.id}/comments`} className={styles.action_btn}>Comments ({post._count?.comments || 0})</Link>
         
-        <button 
-          className={`${styles.action_btn} ${styles.delete_btn}`} 
-          onClick={() => onDelete(post.id)}
-        >
-          Delete
-        </button>
+        <Link to={`/posts/${post.id}/comments`} className={styles.action_btn}>
+          Comments ({post._count?.comments || 0})
+        </Link>
+
+        <fetcher.Form method="post" style={{ display: 'inline' }}>
+          <input type="hidden" name="postId" value={post.id} />
+          <button 
+            type="submit" 
+            name="intent" 
+            value="delete" 
+            className={`${styles.action_btn} ${styles.delete_btn}`}
+          >
+            Delete
+          </button>
+        </fetcher.Form>
       </div>
     </div>
   );
