@@ -5,7 +5,8 @@
   background: white;
   padding: 2rem;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  /* Using your subtle border for consistency */
+  border: 1px solid var(--btn-secondary-border); 
 }
 
 .textarea_group {
@@ -17,37 +18,37 @@
 .textarea_group label {
   font-weight: 600;
   font-size: 0.875rem;
+  color: var(--text-main);
 }
 
 .textarea_group textarea {
   min-height: 300px;
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #d1d5db; /* Standard form gray */
   border-radius: 4px;
   font-family: inherit;
   resize: vertical;
+  color: var(--text-main);
+}
+
+/* Feedback for when the Action is running */
+.textarea_group textarea:disabled,
+.post_form input:disabled {
+  background-color: var(--bg);
+  cursor: not-allowed;
 }
 
 .checkbox_group {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  color: var(--text-main);
+  font-size: 0.875rem;
 }
 
 .form_actions {
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
-}
-
-.cancel_btn {
-  background-color: transparent;
-  color: #64748b;
-  border: 1px solid #cbd5e1;
-}
-
-.cancel_btn:hover {
-  background-color: #f8fafc;
-  color: #1e293b;
-  border-color: #94a3b8;
+  margin-top: 1rem;
 }
