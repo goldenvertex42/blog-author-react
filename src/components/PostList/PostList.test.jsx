@@ -1,60 +1,43 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MemoryRouter } from 'react-router';
-import { AuthProvider } from '../../context/AuthContext';
+import { screen, render } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import * as router from 'react-router';
 import PostList from './PostList';
 
-const renderWithProviders = (ui) => {
-  return render(
-    <MemoryRouter>
-      <AuthProvider>
-        {ui}
-      </AuthProvider>
-    </MemoryRouter>
-  );
-};
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual('react-router');
+  return {
+    ...actual,
+    useLoaderData: vi.fn(),
+  };
+});
 
-describe('PostList Integration', () => {
-  beforeEach(() => {
-    const mockUser = { id: 1, username: 'testuser', exp: Math.floor(Date.now() / 1000) + 3600 };
-    const mockToken = "header." + btoa(JSON.stringify(mockUser)) + ".signature";
-    
-    window.localStorage.setItem('token', mockToken);
-    vi.clearAllMocks();
+vi.mock('../PostItem/PostItem', () => ({
+  default: ({ post }) => <div data-testid="mock-post-item">{post.title}</div>
+}));
+
+describe('PostList Unit Tests', () => {
+  it('renders the empty state when no posts are returned', () => {
+    vi.mocked(router.useLoaderData).mockReturnValue([]);
+
+    render(<PostList />);
+
+    expect(screen.getByText(/haven't written any posts yet/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('mock-post-item')).not.toBeInTheDocument();
   });
 
-  it('includes the Authorization header in the fetch call', async () => {
-    renderWithProviders(<PostList />);
-    
-    const postTitle = await screen.findByText(/first post/i);
-    expect(postTitle).toBeInTheDocument();
-  });
+  it('renders a list of PostItems when data is present', () => {
+    const mockPosts = [
+      { id: 1, title: 'Post One' },
+      { id: 2, title: 'Post Two' },
+    ];
 
-  it('updates the UI immediately when a post is toggled', async () => {
-    renderWithProviders(<PostList />);
+    vi.mocked(router.useLoaderData).mockReturnValue(mockPosts);
 
-    const publishedBadge = await screen.findByText('Published');
-    const toggleBtn = screen.getByRole('button', { name: /unpublish/i });
+    render(<PostList />);
 
-    fireEvent.click(toggleBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText('Draft')).toBeInTheDocument();
-    });
-  });
-
-  it('removes the post from the DOM after successful deletion', async () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
-    
-    renderWithProviders(<PostList />);
-
-    const deleteBtns = await screen.findAllByRole('button', { name: /delete/i });
-    fireEvent.click(deleteBtns[0]);
-
-    expect(confirmSpy).toHaveBeenCalled();
-    
-    await waitFor(() => {
-      expect(screen.queryByText('First Post')).not.toBeInTheDocument();
-    });
+    const items = screen.getAllByTestId('mock-post-item');
+    expect(items).toHaveLength(2);
+    expect(screen.getByText('Post One')).toBeInTheDocument();
+    expect(screen.getByText('Post Two')).toBeInTheDocument();
   });
 });

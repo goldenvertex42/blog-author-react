@@ -1,95 +1,65 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useLoaderData, Link } from 'react-router';
 import PostItem from '../PostItem/PostItem';
 import styles from './PostList.module.css';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+export async function postLoader() {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+
+  if (!response.ok) throw new Response("Failed to load posts", { status: response.status });
+  return response.json();
+}
+
+export async function postListAction({ request }) {
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+  const postId = formData.get("postId");
+  const token = localStorage.getItem('token');
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
+  if (intent === "delete") {
+    if (!window.confirm("Are you sure you want to delete this post?")) return null;
+    
+    await fetch(`${baseUrl}/posts/${postId}`, {
+      method: "DELETE",
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+  }
+
+  if (intent === "toggle-publish") {
+    const isPublished = formData.get("published") === "true";
+    await fetch(`${baseUrl}/posts/${postId}`, {
+      method: "PATCH",
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ published: !isPublished }),
+    });
+  }
+
+  return { success: true };
+}
+
 
 export default function PostList() {
-  const { token } = useAuth();
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchPosts = async () => {
-    try {
-      const response = await fetch(`${API_URL}/posts/admin`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!response.ok) throw new Error('Failed to fetch posts');
-      const data = await response.json();
-      setPosts(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPosts();
-  }, [token]);
-
-  const handleTogglePublish = async (id) => {
-    try {
-      const postToUpdate = posts.find(p => p.id === id);
-      if (!postToUpdate) return;
-
-      const response = await fetch(`${API_URL}/posts/${id}`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({ 
-          ...postToUpdate, 
-          published: !postToUpdate.published 
-        })
-      });
-
-      if (!response.ok) throw new Error('Update failed');
-      
-      setPosts(posts.map(p => p.id === id ? { ...p, published: !p.published } : p));
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this post?")) return;
-    try {
-      const response = await fetch(`${API_URL}/posts/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!response.ok) throw new Error('Delete failed');
-      setPosts(posts.filter(p => p.id !== id));
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  if (loading) return <div className={styles.loading}>Loading posts...</div>;
-  if (error) return <div className={styles.error}>Error: {error}</div>;
+  const posts = useLoaderData();
 
   return (
-    <div className={styles.post_list}>
+    <div className={styles.post_list_container}>
       {posts.length === 0 ? (
-        <div className={styles.empty_state}>
-          <p>No posts found. Create your first one!</p>
-        </div>
+        <p className={styles.empty_state}>You haven't written any posts yet.</p>
       ) : (
-        posts.map(post => (
-          <PostItem 
-            key={post.id} 
-            post={post} 
-            onTogglePublish={handleTogglePublish}
-            onDelete={handleDelete}
-          />
-        ))
+        <div className={styles.post_grid}>
+          {posts.map((post) => (
+            <PostItem 
+              key={post.id} 
+              post={post} 
+            />
+          ))}
+        </div>
       )}
     </div>
   );
