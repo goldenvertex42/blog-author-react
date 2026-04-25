@@ -1,95 +1,65 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
-import { useAuth } from '../../context/AuthContext';
+import { Form, useNavigate, useNavigation, useActionData } from 'react-router';
 import Input from '../Input/Input';
 import Button from '../Button/Button';
 import styles from './PostForm.module.css';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL;
-
-export default function PostForm({ onSave, initialData = {} }) {
+export default function PostForm({ initialData = {} }) {
   const navigate = useNavigate();
-  const { token } = useAuth();
-  const [formData, setFormData] = useState({
-    title: initialData.title || '',
-    text: initialData.text || '',
-    published: initialData.published || false,
-  });
-  const [error, setError] = useState(null);
+  const navigation = useNavigation();
+  const actionData = useActionData();
+  const isSubmitting = navigation.state === "submitting";
 
-  useEffect(() => {
-    if (initialData && Object.keys(initialData).length > 0) {
-      setFormData({
-        title: initialData.title || '',
-        text: initialData.text || '',
-        published: initialData.published || false,
-      });
-    }
-  }, [initialData]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const postId = initialData.id || initialData._id;
-    const url = postId ? `${API_URL}/posts/${postId}` : `${API_URL}/posts`;
-    const method = postId ? 'PUT' : 'POST';
-    try {
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || 'Failed to save post');
-      }
-      
-      if (onSave) onSave();
-      navigate('/');
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+  const errors = actionData?.errors || {};
+  const serverError = actionData?.serverError;
 
   return (
-    <form className={styles.post_form} onSubmit={handleSubmit}>
-      <Input
-        id="title"
-        label="Title"
-        name="title"
-        value={formData.title}
-        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-        required
+    <Form method="post" className={styles.post_form}>
+      {serverError && <p className="error-banner">{serverError}</p>}
+      <Input 
+        id="title" 
+        label="Title" 
+        name="title" 
+        defaultValue={initialData.title || ''} 
+        error={errors.title}
+        required 
       />
-      
+
       <div className={styles.textarea_group}>
         <label htmlFor="text">Text</label>
-        <textarea
-          id="text"
-          value={formData.text}
-          onChange={(e) => setFormData({ ...formData, text: e.target.value })}
-          required
+        <textarea 
+          id="text" 
+          name="text" 
+          defaultValue={initialData.text || ''} 
+          required 
         />
+        {errors.text && <span className={styles.error_text}>{errors.text}</span>}
       </div>
 
       <div className={styles.checkbox_group}>
-        <input
-          type="checkbox"
-          id="published"
-          checked={formData.published}
-          onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
+        <input 
+          type="checkbox" 
+          id="published" 
+          name="published" 
+          defaultChecked={initialData.published || false} 
         />
         <label htmlFor="published">Publish immediately</label>
       </div>
 
-      {error && <p className="error-banner">{error}</p>}
       <div className={styles.form_actions}>
-        <Button type="submit">{initialData.id ? 'Update Post' : 'Create Post'}</Button>
-        <Button type="button" variant="secondary" onClick={() => navigate('/')}>Cancel</Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting 
+            ? 'Saving...' 
+            : initialData.id ? 'Update Post' : 'Create Post'}
+        </Button>
+        <Button 
+          type="button" 
+          variant="secondary" 
+          onClick={() => navigate(-1)}
+          disabled={isSubmitting}
+        >
+          Cancel
+        </Button>
       </div>
-    </form>
+    </Form>
   );
 }

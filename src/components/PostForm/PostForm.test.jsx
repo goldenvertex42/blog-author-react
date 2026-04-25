@@ -1,70 +1,49 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AuthProvider } from '../../context/AuthContext';
+import { screen, render } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import * as router from 'react-router';
 import PostForm from './PostForm';
-
-const mockNavigate = vi.fn();
 
 vi.mock('react-router', async () => {
   const actual = await vi.importActual('react-router');
   return {
     ...actual,
-    useNavigate: () => mockNavigate,
+    useNavigate: () => vi.fn(),
+    useNavigation: vi.fn(),
+    useActionData: vi.fn(),
+    Form: ({ children, ...props }) => <form {...props}>{children}</form>,
   };
 });
 
-const renderWithAuth = (ui, mockUser = { id: 1, username: 'testuser' }) => {
-  const mockToken = "header." + btoa(JSON.stringify(mockUser)) + ".signature";
-  window.localStorage.setItem('token', mockToken);
-  
-  return render(
-    <AuthProvider>
-      {ui}
-    </AuthProvider>
-  );
-};
+describe('PostForm Unit Tests', () => {
+  it('displays the error banner when actionData.error exists', () => {
+    vi.mocked(router.useActionData).mockReturnValue({ serverError: 'Validation failed' });
+    vi.mocked(router.useNavigation).mockReturnValue({ state: 'idle' });
 
-describe('PostForm Component', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    window.localStorage.clear();
-  });
-
-  it('submits correctly and navigates to the dashboard on success', async () => {
-    const onSave = vi.fn();
-    const user = userEvent.setup();
+    render(<PostForm initialData={{}} />);
     
-    renderWithAuth(<PostForm onSave={onSave} />);
-
-    await user.type(screen.getByLabelText(/title/i), 'New Post');
-    await user.type(screen.getByLabelText(/text/i), 'Some text');
-    await user.click(screen.getByRole('button', { name: /create post/i }));
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/');
-    });
-    expect(onSave).toHaveBeenCalled();
+    expect(screen.getByText('Validation failed')).toBeInTheDocument();
   });
 
-  it('stays on the page and shows an error if submission fails', async () => {
-    const user = userEvent.setup();
-    renderWithAuth(<PostForm />);
+  it('shows "Saving..." and disables buttons when state is "submitting"', () => {
+    vi.mocked(router.useActionData).mockReturnValue(null);
+    vi.mocked(router.useNavigation).mockReturnValue({ state: 'submitting' });
 
-    await user.click(screen.getByRole('button', { name: /create post/i }));
-
-    await waitFor(() => {
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-  });
-
-  it('navigates back to dashboard when Cancel is clicked', async () => {
-    const user = userEvent.setup();
-    renderWithAuth(<PostForm />);
+    render(<PostForm initialData={{}} />);
     
-    const cancelBtn = screen.getByRole('button', { name: /cancel/i });
-    await user.click(cancelBtn);
+    const submitBtn = screen.getByRole('button', { name: /saving\.\.\./i });
+    expect(submitBtn).toBeDisabled();
+    expect(screen.getByRole('button', { name: /cancel/i })).toBeDisabled();
+  });
 
-    expect(mockNavigate).toHaveBeenCalledWith('/');
+  it('populates fields with initialData', () => {
+    vi.mocked(router.useActionData).mockReturnValue(null);
+    vi.mocked(router.useNavigation).mockReturnValue({ state: 'idle' });
+
+    const data = { title: 'Hello', text: 'World', id: '123' };
+    render(<PostForm initialData={data} />);
+
+    expect(screen.getByDisplayValue('Hello')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('World')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /update post/i })).toBeInTheDocument();
   });
 });
