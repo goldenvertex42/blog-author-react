@@ -4,7 +4,7 @@ import styles from './PostList.module.css';
 
 export async function postLoader() {
   const token = localStorage.getItem('token');
-  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts`, {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts/admin`, {
     headers: { 'Authorization': `Bearer ${token}` },
   });
 
@@ -29,14 +29,14 @@ export async function postListAction({ request }) {
   }
 
   if (intent === "toggle-publish") {
-    const isPublished = formData.get("published") === "true";
+    const currentStatus = formData.get("published") === "true";
     await fetch(`${baseUrl}/posts/${postId}`, {
       method: "PATCH",
       headers: { 
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ published: !isPublished }),
+      body: JSON.stringify({ published: !currentStatus }),
     });
   }
 
