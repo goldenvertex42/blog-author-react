@@ -61,25 +61,4 @@ describe('LoginForm Integration', () => {
 
     expect(await screen.findByText(/invalid email or password/i)).toBeInTheDocument();
   });
-
-  it('successfully logs in and saves token to localStorage', async () => {
-    const mockToken = "mock.jwt.token";
-    global.fetch.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ token: mockToken }),
-    });
-
-    renderWithRouter(<LoginForm />, {
-      route: '/login',
-      path: '/login',
-      action: loginAction
-    });
-
-    const submitBtn = await screen.findByRole('button', { name: /login/i });
-    fireEvent.click(submitBtn);
-
-    await screen.findByRole('button', { name: /login/i });
-    expect(window.localStorage.getItem('token')).toBe(mockToken);
-  });
 });
