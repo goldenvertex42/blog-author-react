@@ -1,10 +1,11 @@
 import React from 'react';
-import { NavLink, Form } from 'react-router';
-import { useAuth } from '../../context/AuthContext';
+import { NavLink, Form, useRouteLoaderData, useNavigation } from 'react-router';
 import styles from './Sidebar.module.css';
+import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = () => {
-  const { user, logout } = useAuth();
+  const rootData = useRouteLoaderData("root");
+  const user = rootData?.user;
 
   return (
     <aside className={styles.sidebar}>
@@ -49,7 +50,6 @@ const Sidebar = () => {
         method="post" 
         action="/logout" 
         className={styles.footer}
-        onSubmit={() => logout()} // Still clear the React state for immediate UI feedback
       >
         <button type="submit" className={styles.logoutButton}>Logout</button>
       </Form>

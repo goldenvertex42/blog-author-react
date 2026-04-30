@@ -15,7 +15,23 @@ import RegisterPage, { registerAction } from './pages/Register/RegisterPage';
 import Dashboard from './pages/Dashboard/Dashboard';
 import { postLoader, postListAction } from './components/PostList/PostList';
 import PostEditor, { postEditorLoader, postEditorAction } from './pages/PostEditor/PostEditor';
-import CommentPage from './pages/CommentPage/CommentPage';
+import CommentPage, { commentLoader, commentAction } from './pages/CommentPage/CommentPage';
+import { decodeToken } from './context/AuthContext';
+
+const rootLoader = () => {
+  const token = localStorage.getItem('token');
+  if (!token) return { user: null };
+
+  const decoded = decodeToken(token);
+  const currentTime = Date.now() / 1000;
+
+  if (decoded && decoded.exp > currentTime) {
+    return { user: decoded };
+  }
+
+  localStorage.removeItem('token');
+  return { user: null };
+};
 
 const authLoader = () => {
   if (localStorage.getItem('token')) {
@@ -31,14 +47,18 @@ const protectedLoader = () => {
   return null;
 };
 
-function logoutAction() {
+async function logoutAction() {
+  await new Promise(res => setTimeout(res, 300)); 
   localStorage.removeItem('token');
   return redirect("/login");
 }
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route element={<AuthProvider><Outlet /></AuthProvider>}>
+    <Route 
+      id='root'
+      loader={rootLoader}
+      element={<AuthProvider><Outlet /></AuthProvider>}>
       <Route 
         path="logout" 
         action={logoutAction} 
@@ -74,7 +94,7 @@ export const router = createBrowserRouter(
           loader={postEditorLoader} 
           action={postEditorAction} 
         />
-        
+
         <Route 
           path="posts/:postId/edit" 
           element={<PostEditor />} 
@@ -82,7 +102,12 @@ export const router = createBrowserRouter(
           action={postEditorAction} 
         />
 
-        <Route path="posts/:postId/comments" element={<CommentPage />} />
+        <Route 
+          path="posts/:postId/comments" 
+          element={<CommentPage />} 
+          loader={commentLoader} 
+          action={commentAction} 
+        />
       </Route>
 
       {/* Fallback */}
