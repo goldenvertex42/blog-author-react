@@ -2,10 +2,47 @@
   display: flex;
   min-height: 100vh;
   background-color: #f9fafb;
+  opacity: 0;
+}
+
+.showImmediately {
+  opacity: 1;
+  filter: blur(0);
+  transition: none;
 }
 
 .mainContent {
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
+}
+
+.fadeIn {
+  animation: portalEntry 0.5s ease-out forwards;
+}
+
+@keyframes portalEntry {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.fadeOut {
+  animation: portalExit 0.4s ease-in forwards;
+}
+
+@keyframes portalExit {
+  from {
+    opacity: 1;
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    filter: blur(8px);
+  }
 }
