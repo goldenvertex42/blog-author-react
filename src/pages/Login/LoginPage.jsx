@@ -19,7 +19,8 @@ export async function loginAction({ request }) {
 
     if (response.ok) {
       localStorage.setItem('token', result.token);
-      return { token: result.token }; 
+      sessionStorage.setItem('justLoggedIn', 'true');
+      return redirect("/");
     }
   
 
