@@ -1,67 +1,48 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MemoryRouter, Routes, Route } from 'react-router';
-import { AuthProvider } from '../../context/AuthContext';
+import { screen } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
 import CommentList from './CommentList';
-import { server } from '../../mocks/server';
-import { http, HttpResponse } from 'msw';
+import { renderWithRouter } from '../../../tests/test-utils';
 
-const renderCommentList = (postId = '1', mockUser = { id: 1, username: 'testuser' }) => {
-  const payload = {
-    ...mockUser,
-    exp: Math.floor(Date.now() / 1000) + 3600 
-  };
-  const mockToken = "header." + btoa(JSON.stringify(payload)) + ".signature";
-  window.localStorage.setItem('token', mockToken);
+describe('CommentList Component', () => {
+  const mockComments = [
+    {
+      id: 1,
+      userId: "user-1",
+      text: "First comment",
+      createdAt: new Date().toISOString(),
+      user: { username: "UserOne" }
+    },
+    {
+      id: 2,
+      userId: "user-2",
+      text: "Second comment",
+      createdAt: new Date().toISOString(),
+      user: { username: "UserTwo" }
+    }
+  ];
 
-  return render(
-    <MemoryRouter initialEntries={[`/posts/${postId}/comments`]}>
-      <AuthProvider>
-        <Routes>
-          <Route path="/posts/:postId/comments" element={<CommentList />} />
-        </Routes>
-      </AuthProvider>
-    </MemoryRouter>
-  );
-};
-
-describe('CommentList Integration', () => {
-  beforeEach(() => {
-    window.localStorage.clear();
-    vi.clearAllMocks();
+  it('renders the correct count in the title', async () => {
+    renderWithRouter(<CommentList comments={mockComments} />);
+    
+    const title = await screen.findByText(/Manage Comments \(2\)/i);
+    expect(title).toBeInTheDocument();
   });
 
-  it('renders a list of comments for a specific post', async () => {
-    server.use(
-      http.get('*/posts/1/comments', () => {
-        return HttpResponse.json([
-          { 
-            id: 'c1', 
-            text: 'Great post!',
-            createdAt: new Date().toISOString(),
-            user: { username: 'User A' }
-          },
-          { 
-            id: 'c2', 
-            text: 'Very helpful.', 
-            createdAt: new Date().toISOString(),
-            user: { username: 'User B' }
-          }
-        ]);
-      })
-    );
-
-    renderCommentList('1');
-
-    expect(screen.getByText(/loading comments.../i)).toBeInTheDocument();
-
-    const comments = await screen.findAllByText(/great post!|very helpful\./i);
-    expect(comments).toHaveLength(2);
-
-    expect(screen.getByText('User A')).toBeInTheDocument();
-    expect(screen.getByText('User B')).toBeInTheDocument();
-
-    expect(screen.getByText(/manage comments \(2\)/i)).toBeInTheDocument();
+  it('renders all comment items provided', async () => {
+    renderWithRouter(<CommentList comments={mockComments} />);
+    
+    expect(await screen.findByText("First comment")).toBeInTheDocument();
+    expect(screen.getByText("Second comment")).toBeInTheDocument();
+    expect(screen.getByText("UserOne")).toBeInTheDocument();
+    expect(screen.getByText("UserTwo")).toBeInTheDocument();
   });
 
+  it('renders the empty state message when no comments exist', async () => {
+    renderWithRouter(<CommentList comments={[]} />);
+    
+    const emptyMsg = await screen.findByText(/No comments yet for this post/i);
+    expect(emptyMsg).toBeInTheDocument();
+    
+    expect(screen.getByText(/Manage Comments \(0\)/i)).toBeInTheDocument();
+  });
 });
