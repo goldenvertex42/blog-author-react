@@ -1,63 +1,59 @@
-import { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useEffect, useRef } from 'react';
+import { useFetcher } from 'react-router';
 import Button from '../Button/Button';
 import styles from './CommentForm.module.css';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL;
-
 export default function CommentForm({ postId, initialData = null, onSuccess, onCancel }) {
-  const { token } = useAuth();
-  const [text, setText] = useState(initialData?.text || '');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const fetcher = useFetcher();
+  const formRef = useRef();
+  const isEditing = !!initialData;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const url = initialData 
-        ? `${API_URL}/posts/comments/${initialData.id}` 
-        : `${API_URL}/posts/${postId}/comments`;
-      
-      const response = await fetch(url, {
-        method: initialData ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ text }),
-      });
-
-      if (response.ok) {
-        onSuccess();
-        if (!initialData) setText('');
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data?.success) {
+      if (onSuccess) onSuccess(); 
+      if (!isEditing) formRef.current?.reset();
     }
-  };
+  }, [fetcher.state, fetcher.data, isEditing, onSuccess]);
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <textarea
-        className={styles.textarea}
-        placeholder="Write a comment..."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        required
+    <fetcher.Form 
+      method="post" 
+      className={styles.form} 
+      ref={formRef}
+      action={`/posts/${postId}/comments`} 
+    >
+      <input type="hidden" name="intent" value={isEditing ? "edit" : "create"} />
+      {isEditing && <input type="hidden" name="commentId" value={initialData.id} />}
+      
+      <textarea 
+        name="text"
+        className={styles.textarea} 
+        placeholder="Write a comment..." 
+        defaultValue={initialData?.text || ''} 
+        required 
       />
+
       <div className={styles.actions}>
-        <Button type="submit" disabled={isSubmitting}>
-          {initialData ? 'Update Comment' : 'Post Comment'}
+        <Button 
+          type="submit" 
+          disabled={fetcher.state !== "idle"}
+        >
+          {fetcher.state !== "idle" 
+            ? 'Saving...' 
+            : (isEditing ? 'Update Comment' : 'Post Comment')
+          }
         </Button>
+
         {onCancel && (
           <Button type="button" variant="secondary" onClick={onCancel}>
             Cancel
           </Button>
         )}
       </div>
-    </form>
+
+      {fetcher.data?.errors?.serverError && (
+        <p className={styles.error}>{fetcher.data.errors.serverError}</p>
+      )}
+    </fetcher.Form>
   );
 }
