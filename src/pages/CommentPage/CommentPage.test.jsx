@@ -1,47 +1,83 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi } from 'vitest';
-import { MemoryRouter, Routes, Route } from 'react-router';
-import { AuthProvider } from '../../context/AuthContext';
-import CommentPage from './CommentPage';
-
-const renderCommentPage = (postId = '123') => {
-  const mockToken = "header." + btoa(JSON.stringify({ id: 1, username: 'testuser' })) + ".signature";
-  window.localStorage.setItem('token', mockToken);
-
-  return render(
-    <MemoryRouter initialEntries={[`/posts/${postId}/comments`]}>
-      <AuthProvider>
-        <Routes>
-          <Route path="/posts/:postId/comments" element={<CommentPage />} />
-        </Routes>
-      </AuthProvider>
-    </MemoryRouter>
-  );
-};
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import CommentPage, { commentLoader, commentAction } from './CommentPage';
+import { renderWithRouter } from '../../../tests/test-utils';
 
 describe('CommentPage Integration', () => {
-  it('renders the page header and child components', async () => {
-    renderCommentPage();
-    
-    expect(screen.getByRole('heading', { name: /comment moderation/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /back to overview/i })).toHaveAttribute('href', '/');
-    expect(screen.getByPlaceholderText(/write a comment/i)).toBeInTheDocument();
+  const mockPostId = "123";
+  const mockComments = [
+    {
+      id: "c1",
+      userId: "u1",
+      text: "First test comment",
+      createdAt: new Date().toISOString(),
+      user: { username: "UserOne" }
+    }
+  ];
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    global.fetch = vi.fn();
+    storageMock();
+    localStorage.setItem('token', 'fake-token');
   });
 
-  it('triggers a list refresh when a new comment is posted', async () => {
-    const user = userEvent.setup();
-    renderCommentPage();
+  it('loads and displays comments on mount', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockComments,
+    });
 
-    // Fill the form and submit
-    const textarea = screen.getByPlaceholderText(/write a comment/i);
-    await user.type(textarea, 'Author reply');
-    await user.click(screen.getByRole('button', { name: /post comment/i }));
+    renderWithRouter(<CommentPage />, {
+      path: '/posts/:postId/comments',
+      route: `/posts/${mockPostId}/comments`,
+      loaderData: mockComments
+    });
 
-    // Verify the list reloads (CommentList should show its loading state briefly or updated count)
+    expect(await screen.findByText(/Comment Moderation/i)).toBeInTheDocument();
+    expect(screen.getByText("First test comment")).toBeInTheDocument();
+    expect(screen.getByText("UserOne")).toBeInTheDocument();
+  });
+
+  it('handles the "create comment" flow through the action', async () => {
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockComments,
+    });
+    
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true }),
+    });
+
+    renderWithRouter(<CommentPage />, {
+      path: '/posts/:postId/comments',
+      route: `/posts/${mockPostId}/comments`,
+      action: commentAction,
+      loaderData: mockComments
+    });
+
+    const textarea = await screen.findByPlaceholderText(/write a comment/i);
+    const submitBtn = screen.getByRole('button', { name: /post comment/i });
+
+    fireEvent.change(textarea, { target: { name: 'text', value: 'Fresh new comment' } });
+    fireEvent.click(submitBtn);
+
     await waitFor(() => {
-      // Your CommentList logic will fetch again due to the refreshKey changing
-      expect(screen.getByText(/manage comments/i)).toBeInTheDocument();
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining(`/posts/${mockPostId}/comments`),
+        expect.objectContaining({ method: 'POST' })
+      );
     });
   });
 });
+
+function storageMock() {
+  let storage = {};
+  return {
+    setItem: (key, value) => storage[key] = value || '',
+    getItem: (key) => storage[key] || null,
+    removeItem: (key) => delete storage[key],
+    clear: () => storage = {},
+  };
+}
