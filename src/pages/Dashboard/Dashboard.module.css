@@ -19,7 +19,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem; /* Space between title and welcome message */
+  margin-bottom: 1.5rem;
 }
 
 .top_bar h1 {
@@ -27,27 +27,6 @@
   font-weight: 800;
   color: #1e293b;
   margin: 0;
-}
-
-.welcome_section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 2rem;
-}
-
-.welcome_section h2 {
-  font-size: 1.25rem;
-  font-weight: 500;
-  color: #64748b;
-  margin: 0;
-  flex: 1;
-  min-width: 250px;
-}
-
-.username {
-  color: #2563eb;
-  font-weight: 700;
 }
 
 .new_post_link {
