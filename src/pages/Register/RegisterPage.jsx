@@ -12,6 +12,10 @@ export async function registerAction({ request }) {
     return { errors: { confirmPassword: "Passwords do not match" } };
   }
 
+  if (data.adminCode !== import.meta.env.ADMIN_SECRET_CODE) {
+    return { errors: { adminCode: "Code incorrect; try again or register as reader" }}
+  }
+
   try {
     const response = await fetch(`${baseUrl}/auth/register`, {
       method: "POST",
