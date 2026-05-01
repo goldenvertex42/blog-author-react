@@ -9,7 +9,7 @@ export async function postEditorLoader({ params }) {
   
   if (!postId) return null;
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('blog_author_token');
   const response = await fetch(`${API_URL}/posts/${postId}`, {
     headers: { 'Authorization': `Bearer ${token}` },
   });
@@ -31,7 +31,7 @@ export async function postEditorAction({ request, params }) {
     published: formData.get("published") === "on",
   };
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('blog_author_token');
   const method = postId ? "PUT" : "POST";
   const url = postId ? `${API_URL}/posts/${postId}` : `${API_URL}/posts`;
 

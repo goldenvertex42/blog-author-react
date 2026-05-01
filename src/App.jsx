@@ -19,7 +19,7 @@ import CommentPage, { commentLoader, commentAction } from './pages/CommentPage/C
 import { decodeToken } from './context/AuthContext';
 
 const rootLoader = () => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('blog_author_token');
   if (!token) return { user: null };
 
   const decoded = decodeToken(token);
@@ -29,19 +29,19 @@ const rootLoader = () => {
     return { user: decoded };
   }
 
-  localStorage.removeItem('token');
+  localStorage.removeItem('blog_author_token');
   return { user: null };
 };
 
 const authLoader = () => {
-  if (localStorage.getItem('token')) {
+  if (localStorage.getItem('blog_author_token')) {
     return redirect('/');
   }
   return null;
 };
 
 const protectedLoader = () => {
-  if (!localStorage.getItem('token')) {
+  if (!localStorage.getItem('blog_author_token')) {
     return redirect('/login');
   }
   return null;
@@ -49,7 +49,7 @@ const protectedLoader = () => {
 
 async function logoutAction() {
   await new Promise(res => setTimeout(res, 300)); 
-  localStorage.removeItem('token');
+  localStorage.removeItem('blog_author_token');
   return redirect("/login");
 }
 

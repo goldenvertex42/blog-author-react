@@ -18,7 +18,7 @@ export async function loginAction({ request }) {
     const result = await response.json();
 
     if (response.ok) {
-      localStorage.setItem('token', result.token);
+      localStorage.setItem('blog_author_token', result.token);
       sessionStorage.setItem('justLoggedIn', 'true');
       return redirect("/");
     }

@@ -3,7 +3,7 @@ import PostItem from '../PostItem/PostItem';
 import styles from './PostList.module.css';
 
 export async function postLoader() {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('blog_author_token');
   const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts/admin`, {
     headers: { 'Authorization': `Bearer ${token}` },
   });
@@ -16,7 +16,7 @@ export async function postListAction({ request }) {
   const formData = await request.formData();
   const intent = formData.get("intent");
   const postId = formData.get("postId");
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('blog_author_token');
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
   if (intent === "delete") {
