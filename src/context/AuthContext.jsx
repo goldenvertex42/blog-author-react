@@ -19,26 +19,26 @@ export const decodeToken = (token) => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const [token, setToken] = useState(() => localStorage.getItem('blog_author_token'));
   const [user, setUser] = useState(() => {
-    const savedToken = localStorage.getItem('token');
+    const savedToken = localStorage.getItem('blog_author_token');
     if (savedToken) {
       const decoded = decodeToken(savedToken);
       const currentTime = Date.now() / 1000;
       if (decoded && decoded.exp > currentTime) return decoded;
-      localStorage.removeItem('token');
+      localStorage.removeItem('blog_author_token');
     }
     return null;
   });
 
   const login = (newToken) => {
-    localStorage.setItem('token', newToken);
+    localStorage.setItem('blog_author_token', newToken);
     setToken(newToken);
     setUser(decodeToken(newToken));
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('blog_author_token');
     setToken(null);
     setUser(null);
   };
