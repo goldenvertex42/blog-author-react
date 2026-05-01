@@ -1,59 +1,65 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useFetcher } from 'react-router';
 import Button from '../Button/Button';
 import styles from './CommentForm.module.css';
 
-export default function CommentForm({ postId, initialData = null, onSuccess, onCancel }) {
+export default function CommentForm({ postId, initialData = null, onCancel }) {
   const fetcher = useFetcher();
-  const formRef = useRef();
+  
   const isEditing = !!initialData;
+  const isSubmitting = fetcher.state !== "idle";
 
   useEffect(() => {
     if (fetcher.state === "idle" && fetcher.data?.success) {
-      if (onSuccess) onSuccess(); 
-      if (!isEditing) formRef.current?.reset();
+      if (isEditing && onCancel) {
+        onCancel();
+      }
     }
-  }, [fetcher.state, fetcher.data, isEditing, onSuccess]);
+  }, [fetcher.state, fetcher.data, isEditing, onCancel]);
 
   return (
     <fetcher.Form 
       method="post" 
-      className={styles.form} 
-      ref={formRef}
-      action={`/posts/${postId}/comments`} 
+      className={styles.form}
+      key={isSubmitting ? "submitting" : "idle"}
     >
-      <input type="hidden" name="intent" value={isEditing ? "edit" : "create"} />
+      <input type="hidden" name="intent" value={isEditing ? "update" : "create"} />
       {isEditing && <input type="hidden" name="commentId" value={initialData.id} />}
-      
+
       <textarea 
-        name="text"
+        name="text" 
         className={styles.textarea} 
-        placeholder="Write a comment..." 
+        placeholder="Share your thoughts..." 
         defaultValue={initialData?.text || ''} 
         required 
+        disabled={isSubmitting}
+        autoFocus={isEditing}
       />
 
       <div className={styles.actions}>
-        <Button 
-          type="submit" 
-          disabled={fetcher.state !== "idle"}
-        >
-          {fetcher.state !== "idle" 
+        {isEditing && (
+          <Button 
+            type="button" 
+            variant="secondary" 
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+        )}
+
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting 
             ? 'Saving...' 
             : (isEditing ? 'Update Comment' : 'Post Comment')
           }
         </Button>
-
-        {onCancel && (
-          <Button type="button" variant="secondary" onClick={onCancel}>
-            Cancel
-          </Button>
-        )}
       </div>
 
-      {fetcher.data?.errors?.serverError && (
-        <p className={styles.error}>{fetcher.data.errors.serverError}</p>
+      {fetcher.data?.serverError && (
+        <p className={styles.error}>{fetcher.data.serverError}</p>
       )}
     </fetcher.Form>
   );
 }
+

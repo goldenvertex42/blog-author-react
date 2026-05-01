@@ -35,9 +35,27 @@
   gap: 0.75rem;
 }
 
+.error {
+  color: #dc2626;
+  background: #fef2f2;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  border: 1px solid #fee2e2;
+}
+
 /* Ensure the form fits nicely when used inline in a CommentItem */
 :global(.comment_item) .form {
   background: transparent;
   padding: 0;
   border: none;
+}
+
+@media (max-width: 480px) {
+  .actions {
+    flex-direction: column-reverse; /* Put Cancel below Save/Post */
+  }
+  .actions button {
+    width: 100%;
+  }
 }

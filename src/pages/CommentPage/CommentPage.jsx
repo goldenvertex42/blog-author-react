@@ -1,10 +1,10 @@
-import { Link, useLoaderData, useParams, redirect } from 'react-router';
+import { Link, useLoaderData, useParams, useRouteLoaderData } from 'react-router';
 import CommentList from '../../components/CommentList/CommentList';
 import CommentForm from '../../components/CommentForm/CommentForm';
 import styles from './CommentPage.module.css';
 
 export async function commentLoader({ params }) {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('blog_author_token');
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
   const res = await fetch(`${baseUrl}/posts/${params.postId}/comments`, {
     headers: { 'Authorization': `Bearer ${token}` }
@@ -16,11 +16,10 @@ export async function commentLoader({ params }) {
 export async function commentAction({ request, params }) {
   const formData = await request.formData();
   const intent = formData.get("intent");
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('blog_author_token');
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
-
   const headers = { 
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json', 
     'Authorization': `Bearer ${token}` 
   };
 
@@ -30,32 +29,29 @@ export async function commentAction({ request, params }) {
     return { success: true };
   }
 
-  if (intent === "create" || intent === "edit") {
+  if (intent === "create" || intent === "update") {
     const text = formData.get("text");
     const commentId = formData.get("commentId");
-    const method = intent === "edit" ? "PUT" : "POST";
-    const url = intent === "edit" ? `${baseUrl}/posts/comments/${commentId}` : `${baseUrl}/posts/${params.postId}/comments`;
+    const method = intent === "update" ? "PUT" : "POST";
+    const url = intent === "update" 
+      ? `${baseUrl}/posts/comments/${commentId}` 
+      : `${baseUrl}/posts/${params.postId}/comments`;
 
-    const res = await fetch(url, {
-      method,
-      headers,
-      body: JSON.stringify({ text })
-    });
-
+    const res = await fetch(url, { method, headers, body: JSON.stringify({ text }) });
+    
     if (!res.ok) {
       const errorData = await res.json();
-      return { errors: errorData.errors || { serverError: "Submission failed" } };
+      return { serverError: errorData.message || "Submission failed" };
     }
-
     return { success: true };
   }
-
   return null;
 }
 
 export default function CommentPage() {
   const { postId } = useParams();
   const comments = useLoaderData();
+  const { user } = useRouteLoaderData('root');
 
   return (
     <div className={styles.page_container}>
@@ -66,11 +62,16 @@ export default function CommentPage() {
 
       <section className={styles.new_comment_section}>
         <h3>Add a Reply</h3>
-        <CommentForm postId={postId} initialData={null} />
+        <CommentForm postId={postId} />
       </section>
 
       <main>
-        <CommentList comments={comments} />
+        <CommentList 
+          comments={comments} 
+          currentUser={user} 
+          postId={postId}
+          isModerator={true} 
+        />
       </main>
     </div>
   );

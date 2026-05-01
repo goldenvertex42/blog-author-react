@@ -24,15 +24,3 @@
   border-radius: 8px;
   color: #64748b;
 }
-
-.loading, .error {
-  text-align: center;
-  padding: 2rem;
-  font-size: 1rem;
-}
-
-.error {
-  color: #ef4444;
-  background: #fef2f2;
-  border-radius: 6px;
-}

@@ -57,7 +57,7 @@ describe('CommentPage Integration', () => {
       loaderData: mockComments
     });
 
-    const textarea = await screen.findByPlaceholderText(/write a comment/i);
+    const textarea = await screen.findByPlaceholderText(/share your thoughts/i);
     const submitBtn = screen.getByRole('button', { name: /post comment/i });
 
     fireEvent.change(textarea, { target: { name: 'text', value: 'Fresh new comment' } });

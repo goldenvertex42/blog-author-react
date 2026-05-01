@@ -55,6 +55,34 @@
   color: #1e293b;
 }
 
+.isOptimistic {
+  opacity: 0.6;
+  border-style: dashed;
+  pointer-events: none;
+}
+
+.delete_btn {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fee2e2;
+}
+
+.delete_btn:hover:not(:disabled) {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+@media (max-width: 480px) {
+  .actions {
+    flex-direction: column;
+  }
+  
+  .actions > * {
+    width: 100%;
+  }
+}
+
+
 @media (max-width: 640px) {
   .actions {
     justify-content: flex-start;

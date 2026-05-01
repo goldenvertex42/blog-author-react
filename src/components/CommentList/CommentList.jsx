@@ -1,26 +1,40 @@
+import { useFetchers } from 'react-router';
 import CommentItem from '../CommentItem/CommentItem';
 import styles from './CommentList.module.css';
 
-export default function CommentList({ comments }) {
+export default function CommentList({ comments, currentUser, isModerator }) {
+  const fetchers = useFetchers();
+
+  const addFetcher = fetchers.find(f => f.formData?.get("intent") === "create");
+  const isAdding = !!addFetcher;
+
+  const optimisticComment = isAdding ? {
+    id: "temp-opt-id",
+    text: addFetcher.formData.get("text"),
+    user: { username: currentUser?.username || 'You' },
+    createdAt: new Date().toISOString(),
+    isOptimistic: true
+  } : null;
+
+  const displayComments = optimisticComment 
+    ? [optimisticComment, ...comments] 
+    : comments;
+
   return (
     <div className={styles.comment_list}>
-      <h2 className={styles.title}>
-        Manage Comments ({comments.length})
-      </h2>
-
-      {comments.length === 0 ? (
+      {displayComments.length === 0 && !isAdding ? (
         <div className={styles.empty_state}>
-          <p>No comments yet for this post.</p>
+          <p>No comments yet. Be the first to share your thoughts!</p>
         </div>
       ) : (
-        <div className={styles.grid}>
-          {comments.map(comment => (
-            <CommentItem 
-              key={comment.id} 
-              comment={comment} 
-            />
-          ))}
-        </div>
+        displayComments.map(comment => (
+          <CommentItem 
+            key={comment.id} 
+            comment={comment} 
+            currentUser={currentUser} 
+            isModerator={isModerator} 
+          />
+        ))
       )}
     </div>
   );
