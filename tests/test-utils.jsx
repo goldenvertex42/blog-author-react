@@ -5,7 +5,7 @@ import { AuthContext } from '../src/context/AuthContext';
 export function renderWithRouter(ui, { route = '/', path = route, loaderData = null, action, userValue = { user: null }, id = 'root' } = {}) {
   const providerValue = {
     ...userValue,
-    login: userValue.login || vi.fn(), // Provide a mock function if one isn't passed
+    login: userValue.login || vi.fn(),
     logout: userValue.logout || vi.fn(),
   };
 
