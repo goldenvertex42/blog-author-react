@@ -60,7 +60,7 @@ export const router = createBrowserRouter(
       loader={rootLoader}
       element={<AuthProvider><Outlet /></AuthProvider>}>
       <Route 
-        path="logout" 
+        path="/logout" 
         action={logoutAction} 
       />
 

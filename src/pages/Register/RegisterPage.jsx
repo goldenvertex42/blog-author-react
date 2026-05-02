@@ -7,11 +7,10 @@ export async function registerAction({ request }) {
   const formData = await request.formData();
   const data = Object.fromEntries(formData);
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
-  console.log("My API URL is:", import.meta.env.VITE_API_URL);
   if (data.password !== data.confirmPassword) {
     return { errors: { confirmPassword: "Passwords do not match" } };
   }
-
+  console.log(import.meta.env.ADMIN_SECRET_CODE);
   if (data.adminCode !== import.meta.env.ADMIN_SECRET_CODE) {
     return { errors: { adminCode: "Code incorrect; try again or register as reader" }}
   }

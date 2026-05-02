@@ -40,7 +40,7 @@ export default function RegisterForm() {
       />
       <Input 
         id="adminCode" name="adminCode" label="Admin Secret Code" 
-        error={errors.adminCode} 
+        error={errors.adminCode} required
       />
 
       <Button type="submit" disabled={isSubmitting}>
