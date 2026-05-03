@@ -133,4 +133,20 @@
     font-size: 0.75rem;
     padding: 0.5rem;
   }
+
+  .footer {
+    display: flex; 
+    padding: 0;
+    border-top: none;
+    align-items: center;
+  }
+
+  .logoutButton {
+    flex-direction: column;
+    padding: 0.5rem;
+    font-size: 0.7rem;
+    gap: 0.25rem;
+    width: auto;
+    justify-content: center;
+  }
 }
