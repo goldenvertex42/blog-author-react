@@ -115,7 +115,7 @@
     z-index: 1000;
   }
 
-  .header, .footer, .welcome_section {
+  .header, .welcome_section {
     display: none;
   }
 
