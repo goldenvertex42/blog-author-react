@@ -16,7 +16,7 @@ const Sidebar = () => {
         </div>
       </div>
 
-      <nav className={styles.nav}>
+      <nav className={styles.nav} onTouchStart="">
         <NavLink 
           to="/" 
           className={({ isActive }) => 

@@ -35,18 +35,22 @@
   color: #374151;
   text-decoration: none;
   border-radius: 0.5rem;
-  transition: all 0.2s;
+  border-bottom: 3px solid transparent; 
+  transition: all 0.2s ease;
+  -webkit-transform: translateZ(0); /* Force GPU acceleration */
+  transform: translateZ(0);
+  will-change: background-color, color;
 }
 
 .navItem:hover {
   background-color: #eff6ff;
-  color: #2563eb;
+  color: var(--primary);
 }
 
 .active {
   background-color: #dbeafe;
   color: #1d4ed8;
-  font-weight: 600;
+  border-bottom: 3px solid var(--primary);
 }
 
 .footer {
