@@ -46,3 +46,9 @@
     filter: blur(8px);
   }
 }
+
+@media (max-width: 768px) {
+  .mainContent {
+    padding-bottom: 6rem; 
+  }
+}
