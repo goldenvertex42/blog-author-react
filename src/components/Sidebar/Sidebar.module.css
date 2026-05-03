@@ -137,6 +137,7 @@
   .footer {
     display: flex; 
     border-top: none;
+    border-left: 1px solid #e5e7eb;
     align-items: center;
   }
 
