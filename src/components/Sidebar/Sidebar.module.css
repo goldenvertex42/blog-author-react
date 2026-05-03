@@ -97,3 +97,34 @@
   color: #2563eb;
   font-weight: 700;
 }
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid #e5e7eb;
+    z-index: 1000;
+  }
+
+  .header, .footer, .welcome_section {
+    display: none;
+  }
+
+  .nav {
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 0.5rem;
+    gap: 0;
+  }
+
+  .navItem {
+    flex-direction: column;
+    font-size: 0.75rem;
+    padding: 0.5rem;
+  }
+}
